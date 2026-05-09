@@ -217,7 +217,7 @@ const TOTAL = 15;
     margin: 0,
   });
 
-  s.addText("La stack expliquée", {
+  s.addText("Tech & démarche audit", {
     x: MARGIN,
     y: 3.0,
     w: W - 2 * MARGIN,
@@ -229,7 +229,7 @@ const TOTAL = 15;
     margin: 0,
   });
 
-  s.addText("Comment c'est construit, expliqué pour des non-tech.", {
+  s.addText("Comment c'est construit, et comment je l'ai stress-testé.", {
     x: MARGIN,
     y: 4.5,
     w: W - 2 * MARGIN,
@@ -240,10 +240,10 @@ const TOTAL = 15;
     margin: 0,
   });
 
-  s.addText("9 minutes · 5 blocs", {
+  s.addText("Architecture · Stack · Audit 4 axes", {
     x: MARGIN,
     y: H - 1.1,
-    w: 6,
+    w: 8,
     h: 0.3,
     fontSize: 11,
     fontFace: FONT_BODY,
@@ -421,34 +421,35 @@ const TOTAL = 15;
   pageNumber(s, 4, TOTAL);
 }
 
-// ─── Helper: tool slide layout ──────────────────────────────────────────
-function toolSlide(num, title, intro, bullets, footer) {
+// ─── Helper: 4-axis audit slide layout ─────────────────────────────────
+// Used by slides 6-9 (cybersé · archi · qualité code · a11y). Same
+// structure for visual rhythm: tinyHeader, title, intro, 3-4 bullets
+// with vertical accent stripe, footer.
+function auditSlide({ axisNum, headerLabel, title, intro, bullets, footer }) {
   const s = pres.addSlide();
   s.background = { color: C.bgPaper };
-  tinyHeader(s, `BLOC ${num} / 5`);
+  tinyHeader(s, headerLabel);
   titleH1(s, title);
 
-  // Intro
   s.addText(intro, {
     x: MARGIN,
     y: 2.5,
     w: W - 2 * MARGIN,
-    h: 0.7,
-    fontSize: 17,
+    h: 0.8,
+    fontSize: 16,
     fontFace: FONT_BODY,
     color: C.muted,
     italic: true,
     margin: 0,
   });
 
-  // Bullets — 3-up grid feel
   bullets.forEach((b, i) => {
-    const y = 3.7 + i * 0.85;
+    const y = 3.55 + i * 0.75;
     s.addShape(pres.shapes.RECTANGLE, {
       x: MARGIN,
       y,
       w: 0.04,
-      h: 0.55,
+      h: 0.6,
       fill: { color: C.ink },
       line: { color: C.ink, width: 0 },
     });
@@ -461,7 +462,7 @@ function toolSlide(num, title, intro, bullets, footer) {
         x: MARGIN + 0.25,
         y,
         w: W - 2 * MARGIN - 0.25,
-        h: 0.6,
+        h: 0.65,
         fontSize: 14,
         fontFace: FONT_BODY,
         valign: "middle",
@@ -470,7 +471,6 @@ function toolSlide(num, title, intro, bullets, footer) {
     );
   });
 
-  // Footer
   s.addText(footer, {
     x: MARGIN,
     y: H - 1.0,
@@ -483,209 +483,23 @@ function toolSlide(num, title, intro, bullets, footer) {
     margin: 0,
   });
 
-  return s;
+  pageNumber(s, axisNum + 5, TOTAL); // axes 1-4 → slides 6-9
 }
 
-// ─── Slide 5 — Code de l'app ────────────────────────────────────────────
-pageNumber(
-  toolSlide(
-    1,
-    "Le code de l'app",
-    "Next.js + TypeScript + Tailwind — la matière première de l'app.",
-    [
-      { label: "Next.js", body: "le squelette qui gère URLs, pages, communication base de données" },
-      { label: "TypeScript", body: "un correcteur orthographique pour les bugs avant qu'ils partent en prod" },
-      { label: "Tailwind", body: "le style écrit directement dans le code, plus rapide et plus cohérent" },
-    ],
-    "Sans ces 3 outils : framework maison, code sans filet, ~2 jours perdus sur des bugs visuels.",
-  ),
-  5,
-  TOTAL,
-);
-
-// ─── Slide 6 — GitHub ───────────────────────────────────────────────────
-pageNumber(
-  toolSlide(
-    2,
-    "GitHub",
-    "Une Google Docs pour le code, avec une mémoire infinie.",
-    [
-      { label: "Sauvegarde", body: "chaque modification est datée, signée, retrouvable en 2 clics" },
-      { label: "Historique", body: "l'évolution du projet jour après jour, 60+ commits scopés" },
-      { label: "GitHub Actions", body: "un robot qui vérifie chaque commit (compile + lint + build)" },
-    ],
-    "Vert ou rouge en 1 minute. Filet de sécurité avant toute mise en ligne.",
-  ),
-  6,
-  TOTAL,
-);
-
-// ─── Slide 7 — Vercel ───────────────────────────────────────────────────
-pageNumber(
-  toolSlide(
-    3,
-    "Vercel",
-    "L'endroit où l'app est en ligne — sans configurer de serveur.",
-    [
-      { label: "Hébergement", body: "pas de serveur à louer, pas de HTTPS à gérer, pas de mise en prod manuelle" },
-      { label: "Connecté à GitHub", body: "git push → 30 secondes → site mis à jour en ligne automatiquement" },
-      { label: "Preview URLs", body: "chaque branche a sa propre URL pour tester avant de merger" },
-    ],
-    "Sans ça : un week-end de plomberie pour déployer un simple site.",
-  ),
-  7,
-  TOTAL,
-);
-
-// ─── Slide 8 — Airtable ─────────────────────────────────────────────────
-pageNumber(
-  toolSlide(
-    4,
-    "Airtable",
-    "La base de données — un Excel collaboratif en ligne, branché à mon app.",
-    [
-      { label: "5 tables", body: "Users · Feedbacks · Votes · Notifications · Comments" },
-      { label: "Debug rapide", body: "j'ouvre Airtable directement pour voir, corriger ou supprimer une donnée" },
-      { label: "Free tier", body: "suffisant pour 10-20 users, limites assumées et documentées" },
-    ],
-    "Plan de migration vers Postgres documenté dans le README pour la V3.",
-  ),
-  8,
-  TOTAL,
-);
-
-// ─── Slide 9 — Services satellites ──────────────────────────────────────
+// ─── Slide 5 — Stack tech (1 slide consolidée) ──────────────────────────
 {
   const s = pres.addSlide();
   s.background = { color: C.bgPaper };
-  tinyHeader(s, "BLOC 5 / 5");
-  titleH1(s, "Services satellites");
+  tinyHeader(s, "STACK TECHNIQUE");
+  titleH1(s, "Les outils, en une vue");
 
   s.addText(
-    "Trois services qui font chacun une chose mieux que je ne saurais le faire.",
+    "Cinq blocs qui s'emboîtent : du code source jusqu'à l'app en ligne, plus les services qui font le sale boulot.",
     {
       x: MARGIN,
       y: 2.5,
       w: W - 2 * MARGIN,
-      h: 0.5,
-      fontSize: 17,
-      fontFace: FONT_BODY,
-      color: C.muted,
-      italic: true,
-      margin: 0,
-    },
-  );
-
-  const cols = [
-    {
-      name: "Resend",
-      role: "Envoi d'emails",
-      detail:
-        "Vérification compte + reset password. Gère délivrabilité, spam folder, serveurs SMTP à ma place.",
-    },
-    {
-      name: "Upstash Redis",
-      role: "Anti-spam",
-      detail:
-        "Bloque après 5 tentatives de login en moins d'une minute. Invisible pour les vrais users, brutal pour les attaquants.",
-    },
-    {
-      name: "Sentry",
-      role: "Détecteur d'erreurs",
-      detail:
-        "Si une page plante chez un vrai utilisateur, je reçois un email avec la cause exacte et la ligne de code.",
-    },
-  ];
-  const colW = 3.7;
-  const colGap = 0.3;
-  const totalW = cols.length * colW + (cols.length - 1) * colGap;
-  const startX = (W - totalW) / 2;
-  cols.forEach((c, i) => {
-    const x = startX + i * (colW + colGap);
-    s.addShape(pres.shapes.RECTANGLE, {
-      x,
-      y: 3.55,
-      w: colW,
-      h: 2.7,
-      fill: { color: C.bgSoft },
-      line: { color: C.border, width: 1 },
-    });
-    // accent stripe
-    s.addShape(pres.shapes.RECTANGLE, {
-      x,
-      y: 3.55,
-      w: colW,
-      h: 0.06,
-      fill: { color: C.ink },
-      line: { color: C.ink, width: 0 },
-    });
-    s.addText(c.name, {
-      x: x + 0.25,
-      y: 3.75,
-      w: colW - 0.5,
-      h: 0.45,
-      fontSize: 18,
-      fontFace: FONT_HEAD,
-      color: C.ink,
-      bold: true,
-      margin: 0,
-    });
-    s.addText(c.role, {
-      x: x + 0.25,
-      y: 4.2,
-      w: colW - 0.5,
-      h: 0.4,
-      fontSize: 11,
-      fontFace: FONT_BODY,
-      color: C.mutedLight,
-      bold: true,
-      charSpacing: 3,
-      margin: 0,
-    });
-    s.addText(c.detail, {
-      x: x + 0.25,
-      y: 4.7,
-      w: colW - 0.5,
-      h: 1.5,
-      fontSize: 12,
-      fontFace: FONT_BODY,
-      color: C.inkSoft,
-      margin: 0,
-    });
-  });
-
-  s.addText(
-    "Tous gracieusement dégradés — sans clés d'API, l'app continue de tourner.",
-    {
-      x: MARGIN,
-      y: H - 1.0,
-      w: W - 2 * MARGIN,
-      h: 0.4,
-      fontSize: 12,
-      fontFace: FONT_BODY,
-      color: C.mutedLight,
-      italic: true,
-      margin: 0,
-    },
-  );
-
-  pageNumber(s, 9, TOTAL);
-}
-
-// ─── Slide 10 — L'approche audit (4 axes) ───────────────────────────────
-{
-  const s = pres.addSlide();
-  s.background = { color: C.bgPaper };
-  tinyHeader(s, "AUDIT INTERNE");
-  titleH1(s, "Stress-testé sur 4 axes");
-
-  s.addText(
-    "Audit que je me suis imposé à mi-parcours. Sur chaque axe : écarts identifiés, correctifs livrés, le tout documenté dans le README.",
-    {
-      x: MARGIN,
-      y: 2.5,
-      w: W - 2 * MARGIN,
-      h: 0.8,
+      h: 0.7,
       fontSize: 16,
       fontFace: FONT_BODY,
       color: C.muted,
@@ -694,123 +508,93 @@ pageNumber(
     },
   );
 
-  const axes = [
+  const blocks = [
     {
-      num: "01",
-      name: "Cybersécurité",
-      bullets: [
-        "bcrypt + cookie JWT signé httpOnly",
-        "Rate limiting per-IP : anti-injection en masse de comptes",
-        "Vérification email + reset password (Resend)",
-      ],
+      name: "Code de l'app",
+      tools: "Next.js · TypeScript · Tailwind",
+      role: "Le squelette qui gère pages, URLs, données. Le style écrit dans le code.",
     },
     {
-      num: "02",
-      name: "Architecture",
-      bullets: [
-        "Service layer Airtable splitté par domaine",
-        "Helpers réutilisables : requireAuth, useApiMutation",
-        "Cache + invalidation par tag",
-      ],
+      name: "Code source",
+      tools: "GitHub · GitHub Actions",
+      role: "Une Google Docs pour le code, mémoire infinie. Un robot vérifie chaque modification.",
     },
     {
-      num: "03",
-      name: "Qualité du code",
-      bullets: [
-        "0 erreur TypeScript, 0 warning ESLint",
-        "10 tests E2E Playwright + CI verte à chaque PR",
-        "Constantes centralisées, magic numbers éliminés",
-      ],
+      name: "Mise en ligne",
+      tools: "Vercel",
+      role: "Site en ligne en 30 secondes après chaque sauvegarde, sans configurer de serveur.",
     },
     {
-      num: "04",
-      name: "Accessibilité",
-      bullets: [
-        "Cible WCAG 2.1 AA",
-        "Focus visible, skip-link, contraste AA",
-        "role=alert sur erreurs, prefers-reduced-motion respecté",
-      ],
+      name: "Base de données",
+      tools: "Airtable",
+      role: "Un Excel collaboratif branché à l'app. 5 tables (Users, Feedbacks, Votes, Notifs, Comments).",
+    },
+    {
+      name: "Services satellites",
+      tools: "Resend · Upstash Redis · Sentry",
+      role: "Emails (vérification, reset). Anti-spam (rate limit). Détection d'erreurs en prod.",
     },
   ];
 
-  const colW = 2.7;
-  const colGap = 0.3;
-  const totalCols = axes.length * colW + (axes.length - 1) * colGap;
-  const startX = (W - totalCols) / 2;
-  const colY = 3.55;
-  const colH = 3.0;
-
-  axes.forEach((axis, i) => {
-    const x = startX + i * (colW + colGap);
-    // Card
+  const cardY0 = 3.5;
+  const cardH = 0.55;
+  const cardGap = 0.1;
+  blocks.forEach((b, i) => {
+    const y = cardY0 + i * (cardH + cardGap);
     s.addShape(pres.shapes.RECTANGLE, {
-      x,
-      y: colY,
-      w: colW,
-      h: colH,
+      x: MARGIN,
+      y,
+      w: W - 2 * MARGIN,
+      h: cardH,
       fill: { color: C.bgSoft },
       line: { color: C.border, width: 1 },
     });
-    // Top accent stripe
     s.addShape(pres.shapes.RECTANGLE, {
-      x,
-      y: colY,
-      w: colW,
-      h: 0.06,
+      x: MARGIN,
+      y,
+      w: 0.06,
+      h: cardH,
       fill: { color: C.ink },
       line: { color: C.ink, width: 0 },
     });
-    // Axis number
-    s.addText(axis.num, {
-      x: x + 0.25,
-      y: colY + 0.2,
-      w: colW - 0.5,
-      h: 0.35,
-      fontSize: 11,
+    s.addText(b.name, {
+      x: MARGIN + 0.2,
+      y,
+      w: 2.8,
+      h: cardH,
+      fontSize: 13,
       fontFace: FONT_BODY,
-      color: C.mutedLight,
-      bold: true,
-      charSpacing: 4,
-      margin: 0,
-    });
-    // Axis name
-    s.addText(axis.name, {
-      x: x + 0.25,
-      y: colY + 0.55,
-      w: colW - 0.5,
-      h: 0.5,
-      fontSize: 17,
-      fontFace: FONT_HEAD,
       color: C.ink,
       bold: true,
+      valign: "middle",
       margin: 0,
     });
-    // Bullets
-    axis.bullets.forEach((b, j) => {
-      const by = colY + 1.15 + j * 0.6;
-      s.addShape(pres.shapes.OVAL, {
-        x: x + 0.25,
-        y: by + 0.13,
-        w: 0.1,
-        h: 0.1,
-        fill: { color: C.ink },
-        line: { color: C.ink, width: 0 },
-      });
-      s.addText(b, {
-        x: x + 0.45,
-        y: by,
-        w: colW - 0.7,
-        h: 0.55,
-        fontSize: 11,
-        fontFace: FONT_BODY,
-        color: C.inkSoft,
-        margin: 0,
-      });
+    s.addText(b.tools, {
+      x: MARGIN + 3.1,
+      y,
+      w: 3.3,
+      h: cardH,
+      fontSize: 11,
+      fontFace: FONT_BODY,
+      color: C.muted,
+      valign: "middle",
+      margin: 0,
+    });
+    s.addText(b.role, {
+      x: MARGIN + 6.5,
+      y,
+      w: W - 2 * MARGIN - 6.7,
+      h: cardH,
+      fontSize: 11,
+      fontFace: FONT_BODY,
+      color: C.inkSoft,
+      valign: "middle",
+      margin: 0,
     });
   });
 
   s.addText(
-    "Pour chaque correctif livré : un commit dédié + une entrée dans le README.",
+    "Tout est gratuit (free tiers), connecté avec quelques clics dans des dashboards.",
     {
       x: MARGIN,
       y: H - 1.0,
@@ -824,57 +608,122 @@ pageNumber(
     },
   );
 
-  pageNumber(s, 10, TOTAL);
+  pageNumber(s, 5, TOTAL);
 }
 
-// ─── Slide 11 — Récap stack ─────────────────────────────────────────────
-{
-  const s = pres.addSlide();
-  s.background = { color: C.bgPaper };
-  tinyHeader(s, "RÉCAPITULATIF");
-  titleH1(s, "Pour résumer en une phrase");
-
-  s.addText(
-    [
-      { text: "GitHub ", options: { bold: true, color: C.ink } },
-      { text: "stocke le code,\n", options: { color: C.inkSoft } },
-      { text: "Vercel ", options: { bold: true, color: C.ink } },
-      { text: "le met en ligne,\n", options: { color: C.inkSoft } },
-      { text: "Next.js ", options: { bold: true, color: C.ink } },
-      { text: "fait tourner les pages,\n", options: { color: C.inkSoft } },
-      { text: "Airtable ", options: { bold: true, color: C.ink } },
-      { text: "stocke les données,\n", options: { color: C.inkSoft } },
-      { text: "Resend / Redis / Sentry ", options: { bold: true, color: C.ink } },
-      { text: "s'occupent des cas tordus.", options: { color: C.inkSoft } },
-    ],
+// ─── Slide 6 — Audit · Cybersécurité ────────────────────────────────────
+auditSlide({
+  axisNum: 1,
+  headerLabel: "AUDIT · 1/4",
+  title: "Cybersécurité : ce qui protège l'app",
+  intro:
+    "Une app avec des comptes utilisateurs et des données privées doit être protégée contre les attaques classiques.",
+  bullets: [
     {
-      x: MARGIN,
-      y: 2.8,
-      w: W - 2 * MARGIN,
-      h: 3.5,
-      fontSize: 26,
-      fontFace: FONT_HEAD,
-      paraSpaceAfter: 6,
-      margin: 0,
+      label: "Mots de passe protégés",
+      body: "chiffrés avec bcrypt, jamais lisibles même par moi.",
     },
-  );
+    {
+      label: "Sessions sécurisées",
+      body: "cookie signé par le serveur, transmis en HTTPS, inaccessible au code de la page.",
+    },
+    {
+      label: "Anti-injection en masse",
+      body: "login bloqué après 5 essais en 1 minute. Signup, vote et reset password aussi limités.",
+    },
+    {
+      label: "Vérification email + reset password",
+      body: "pas d'inscription avec une adresse fictive. Liens à expiration courte, à usage unique.",
+    },
+  ],
+  footer: "Pas une fonctionnalité visible — un filet en arrière-plan, indispensable.",
+});
 
-  s.addText("Tout ça gratuit, moderne, interconnecté avec quelques clics.", {
-    x: MARGIN,
-    y: H - 1.0,
-    w: W - 2 * MARGIN,
-    h: 0.4,
-    fontSize: 12,
-    fontFace: FONT_BODY,
-    color: C.mutedLight,
-    italic: true,
-    margin: 0,
-  });
+// ─── Slide 7 — Audit · Architecture ─────────────────────────────────────
+auditSlide({
+  axisNum: 2,
+  headerLabel: "AUDIT · 2/4",
+  title: "Architecture : un code organisé pour évoluer",
+  intro:
+    "Une app qui doit pouvoir grandir, et être comprise par d'autres devs (ou moi-même dans 6 mois).",
+  bullets: [
+    {
+      label: "Code rangé par responsabilité",
+      body: "un dossier pour les pages, un autre pour les données, un autre pour les utilitaires.",
+    },
+    {
+      label: "Helpers réutilisables",
+      body: "les morceaux de code répétés sont factorisés (ex : vérifier qu'un user est connecté = 1 fonction réutilisée 10 fois).",
+    },
+    {
+      label: "Cache des données fréquentes",
+      body: "les listes lues à chaque page sont mises en cache, et invalidées proprement à la moindre modification.",
+    },
+    {
+      label: "Constantes centralisées",
+      body: "durées, tailles, identifiants de cookie regroupés dans un seul fichier de config.",
+    },
+  ],
+  footer: "Le code peut être lu, repris et étendu sans tout réapprendre.",
+});
 
-  pageNumber(s, 11, TOTAL);
-}
+// ─── Slide 8 — Audit · Qualité du code ──────────────────────────────────
+auditSlide({
+  axisNum: 3,
+  headerLabel: "AUDIT · 3/4",
+  title: "Qualité du code : un filet de sécurité automatique",
+  intro:
+    "Pour ne pas casser ce qui marche en ajoutant de nouvelles fonctionnalités.",
+  bullets: [
+    {
+      label: "Vérification automatique",
+      body: "à chaque modification, des robots vérifient le code (compile-t-il ? respecte-t-il les règles ? ne casse-t-il rien ?).",
+    },
+    {
+      label: "0 erreur, 0 warning",
+      body: "sur 3 000+ lignes de code. Si je dévie, l'éditeur me crie dessus avant que ça parte en ligne.",
+    },
+    {
+      label: "10 tests qui simulent des utilisateurs",
+      body: "signup, vote, anti-double-vote, permissions, kanban — tournent à chaque modification.",
+    },
+    {
+      label: "Historique propre",
+      body: "70+ modifications avec messages explicites. Je peux remonter dans le temps en 2 clics.",
+    },
+  ],
+  footer: "Vert ou rouge en 1 minute. Le filet attrape les bugs avant les utilisateurs.",
+});
 
-// ─── Slide 12 — Section break: Partie 2 ─────────────────────────────────
+// ─── Slide 9 — Audit · Accessibilité ────────────────────────────────────
+auditSlide({
+  axisNum: 4,
+  headerLabel: "AUDIT · 4/4",
+  title: "Accessibilité : utilisable par tous",
+  intro:
+    "Norme WCAG 2.1 AA — un standard international pour rendre un site utilisable par les personnes en situation de handicap.",
+  bullets: [
+    {
+      label: "Navigation au clavier visible",
+      body: "un cercle de focus apparaît sur l'élément actif quand on appuie sur Tab.",
+    },
+    {
+      label: "Lien d'évitement",
+      body: "\"Aller au contenu principal\" pour les lecteurs d'écran qui peuvent sauter le menu.",
+    },
+    {
+      label: "Contraste validé",
+      body: "les couleurs sont assez contrastées pour rester lisibles, y compris pour les personnes malvoyantes.",
+    },
+    {
+      label: "Animations respectueuses",
+      body: "les confettis (et autres animations) sont coupés pour les personnes sensibles aux mouvements (option système).",
+    },
+  ],
+  footer: "Audit complet documenté dans le README — items identifiés, traités, justifiés.",
+});
+
+// ─── Slide 10 — Section break: Partie 2 ─────────────────────────────────
 {
   const s = pres.addSlide();
   s.background = { color: C.ink };
@@ -892,21 +741,21 @@ pageNumber(
     margin: 0,
   });
 
-  s.addText("Démo live", {
+  s.addText("L'outil & le retour d'expérience", {
     x: MARGIN,
     y: 3.0,
     w: W - 2 * MARGIN,
     h: 1.4,
-    fontSize: 56,
+    fontSize: 52,
     fontFace: FONT_HEAD,
     color: "FFFFFF",
     bold: true,
     margin: 0,
   });
 
-  s.addText("10 minutes · 3 personas · 1 boucle complète.", {
+  s.addText("Vision · fonctionnalités · ce que j'ai appris en codant.", {
     x: MARGIN,
-    y: 4.5,
+    y: 4.6,
     w: W - 2 * MARGIN,
     h: 0.5,
     fontSize: 18,
@@ -914,118 +763,75 @@ pageNumber(
     color: "C8C8C8",
     margin: 0,
   });
-
-  s.addText("Bob · Alice · Yasmine", {
-    x: MARGIN,
-    y: H - 1.1,
-    w: 6,
-    h: 0.3,
-    fontSize: 11,
-    fontFace: FONT_BODY,
-    color: C.mutedLight,
-    bold: true,
-    charSpacing: 4,
-    margin: 0,
-  });
 }
 
-// ─── Slide 12 — Setup démo ──────────────────────────────────────────────
+// ─── Slide 11 — Vision ──────────────────────────────────────────────────
 {
   const s = pres.addSlide();
   s.background = { color: C.bgPaper };
-  tinyHeader(s, "DÉMO · CASTING");
-  titleH1(s, "3 personas, 3 onglets");
+  tinyHeader(s, "VISION");
+  titleH1(s, "On part du problème, pas des features.");
 
-  const personas = [
+  s.addText(
+    "Pulse résout un problème simple : centraliser et prioriser le feedback produit, sans biais.",
     {
-      name: "Bob",
-      role: "Utilisateur",
-      acts: ["Soumet une idée : “mode sombre”", "Vote sur un autre feedback", "Reçoit la notification de livraison"],
+      x: MARGIN,
+      y: 2.5,
+      w: W - 2 * MARGIN,
+      h: 0.7,
+      fontSize: 17,
+      fontFace: FONT_BODY,
+      color: C.muted,
+      italic: true,
+      margin: 0,
+    },
+  );
+
+  const principles = [
+    {
+      label: "Une seule source de vérité",
+      body: "fini Slack + Notion + emails + tickets éparpillés. Tout arrive au même endroit, structuré.",
     },
     {
-      name: "Alice",
-      role: "Admin produit",
-      acts: ["Voit le tableau de bord (KPIs, charts)", "Identifie le top des votes", "Envoie l'idée au backlog dev"],
+      label: "Le vote utilisateur fait la priorité",
+      body: "pas le client qui crie le plus fort, pas la mémoire du PM. La donnée tranche.",
     },
     {
-      name: "Yasmine",
-      role: "Développeuse",
-      acts: ["Prend le ticket dans le kanban", "Le déplace : à faire → en cours → review → livré", "🎉 Confetti quand c'est livré"],
+      label: "Transparence du processus",
+      body: "le créateur du feedback est notifié à chaque étape : pris dans le backlog, en cours, livré.",
     },
   ];
 
-  const colW = 3.7;
-  const colGap = 0.3;
-  const totalW = personas.length * colW + (personas.length - 1) * colGap;
-  const startX = (W - totalW) / 2;
-  const cardY = 3.0;
-
-  personas.forEach((p, i) => {
-    const x = startX + i * (colW + colGap);
+  principles.forEach((p, i) => {
+    const y = 3.5 + i * 0.95;
     s.addShape(pres.shapes.RECTANGLE, {
-      x,
-      y: cardY,
-      w: colW,
-      h: 3.2,
-      fill: { color: C.bgPaper },
-      line: { color: C.border, width: 1 },
-    });
-    s.addShape(pres.shapes.RECTANGLE, {
-      x,
-      y: cardY,
-      w: colW,
-      h: 0.06,
+      x: MARGIN,
+      y,
+      w: 0.04,
+      h: 0.75,
       fill: { color: C.ink },
       line: { color: C.ink, width: 0 },
     });
-    s.addText(p.name, {
-      x: x + 0.25,
-      y: cardY + 0.22,
-      w: colW - 0.5,
-      h: 0.5,
-      fontSize: 22,
-      fontFace: FONT_HEAD,
-      color: C.ink,
-      bold: true,
-      margin: 0,
-    });
-    s.addText(p.role, {
-      x: x + 0.25,
-      y: cardY + 0.7,
-      w: colW - 0.5,
-      h: 0.35,
-      fontSize: 11,
-      fontFace: FONT_BODY,
-      color: C.mutedLight,
-      bold: true,
-      charSpacing: 3,
-      margin: 0,
-    });
-    p.acts.forEach((a, j) => {
-      const ay = cardY + 1.2 + j * 0.55;
-      s.addShape(pres.shapes.OVAL, {
-        x: x + 0.25,
-        y: ay + 0.12,
-        w: 0.12,
-        h: 0.12,
-        fill: { color: C.ink },
-        line: { color: C.ink, width: 0 },
-      });
-      s.addText(a, {
-        x: x + 0.5,
-        y: ay,
-        w: colW - 0.75,
-        h: 0.5,
-        fontSize: 12,
+    s.addText(
+      [
+        { text: p.label + " — ", options: { bold: true, color: C.ink } },
+        { text: p.body, options: { color: C.inkSoft } },
+      ],
+      {
+        x: MARGIN + 0.25,
+        y,
+        w: W - 2 * MARGIN - 0.25,
+        h: 0.8,
+        fontSize: 15,
         fontFace: FONT_BODY,
-        color: C.inkSoft,
+        valign: "middle",
         margin: 0,
-      });
-    });
+      },
+    );
   });
 
   s.addText(
-    "Boucle complète : feedback → vote → priorisation → dev → notification.",
+    "Chaque fonctionnalité ajoutée résout un de ces 3 principes. Pas de feature gadget.",
     {
       x: MARGIN,
       y: H - 1.0,
@@ -1040,101 +846,529 @@ pageNumber(
     },
   );
 
-  pageNumber(s, 13, TOTAL);
+  pageNumber(s, 11, TOTAL);
 }
 
-// ─── Slide 14 — Closing : ce que j'ai appris ────────────────────────────
-{
+// ─── Helper: persona-style 3-column slide (used by both fonctionnalités versions) ─
+function threeColumnFeaturesSlide({ headerLabel, title, intro, items }) {
   const s = pres.addSlide();
   s.background = { color: C.bgPaper };
-  tinyHeader(s, "RETOUR D'EXPÉRIENCE");
-  titleH1(s, "Coder en direct vs Bubble — ce que j'ai appris");
+  tinyHeader(s, headerLabel);
+  titleH1(s, title);
 
-  // Two columns
-  const colW = 5.6;
+  s.addText(intro, {
+    x: MARGIN,
+    y: 2.5,
+    w: W - 2 * MARGIN,
+    h: 0.7,
+    fontSize: 16,
+    fontFace: FONT_BODY,
+    color: C.muted,
+    italic: true,
+    margin: 0,
+  });
+
+  const colW = 3.7;
   const colGap = 0.3;
-  const totalW = colW * 2 + colGap;
-  const startX = (W - totalW) / 2;
-  const cardY = 2.7;
-  const cardH = 3.3;
+  const totalCols = items.length * colW + (items.length - 1) * colGap;
+  const startX = (W - totalCols) / 2;
+  const cardY = 3.5;
+  const cardH = 3.0;
 
-  const cols = [
-    {
-      title: "Avec le code direct",
-      points: [
-        "Vrai git workflow : commits, PRs, CI",
-        "Sécurité serveur : cookies, JWT, rate limit",
-        "Déploiement et monitoring prod",
-        "Décisions d'architecture documentées",
-      ],
-    },
-    {
-      title: "Mais Bubble m'aurait épargné",
-      points: [
-        "L'authentification à la main",
-        "La configuration du CI/CD",
-        "Le debug à l'aveugle quand ça plante",
-        "Le maintien d'un schéma de base à jour",
-      ],
-    },
-  ];
-
-  cols.forEach((c, i) => {
+  items.forEach((it, i) => {
     const x = startX + i * (colW + colGap);
     s.addShape(pres.shapes.RECTANGLE, {
       x,
       y: cardY,
       w: colW,
       h: cardH,
-      fill: { color: i === 0 ? C.ink : C.bgSoft },
-      line: { color: i === 0 ? C.ink : C.border, width: 1 },
+      fill: { color: C.bgSoft },
+      line: { color: C.border, width: 1 },
     });
-    s.addText(c.title, {
-      x: x + 0.35,
-      y: cardY + 0.3,
-      w: colW - 0.7,
-      h: 0.5,
-      fontSize: 18,
+    s.addShape(pres.shapes.RECTANGLE, {
+      x,
+      y: cardY,
+      w: colW,
+      h: 0.06,
+      fill: { color: C.ink },
+      line: { color: C.ink, width: 0 },
+    });
+    s.addText(it.name, {
+      x: x + 0.25,
+      y: cardY + 0.2,
+      w: colW - 0.5,
+      h: 0.45,
+      fontSize: 19,
       fontFace: FONT_HEAD,
-      color: i === 0 ? "FFFFFF" : C.ink,
+      color: C.ink,
       bold: true,
       margin: 0,
     });
-    c.points.forEach((p, j) => {
-      const py = cardY + 0.95 + j * 0.5;
+    s.addText(it.role, {
+      x: x + 0.25,
+      y: cardY + 0.65,
+      w: colW - 0.5,
+      h: 0.35,
+      fontSize: 11,
+      fontFace: FONT_BODY,
+      color: C.mutedLight,
+      bold: true,
+      charSpacing: 3,
+      margin: 0,
+    });
+    it.features.forEach((f, j) => {
+      const fy = cardY + 1.1 + j * 0.45;
       s.addShape(pres.shapes.OVAL, {
-        x: x + 0.35,
-        y: py + 0.13,
-        w: 0.12,
-        h: 0.12,
-        fill: { color: i === 0 ? "FFFFFF" : C.ink },
-        line: { color: i === 0 ? "FFFFFF" : C.ink, width: 0 },
+        x: x + 0.25,
+        y: fy + 0.15,
+        w: 0.1,
+        h: 0.1,
+        fill: { color: C.ink },
+        line: { color: C.ink, width: 0 },
       });
-      s.addText(p, {
-        x: x + 0.6,
-        y: py,
-        w: colW - 0.95,
-        h: 0.5,
-        fontSize: 13,
+      s.addText(f, {
+        x: x + 0.45,
+        y: fy,
+        w: colW - 0.7,
+        h: 0.45,
+        fontSize: 10.5,
         fontFace: FONT_BODY,
-        color: i === 0 ? "F0F0F0" : C.inkSoft,
+        color: C.inkSoft,
         margin: 0,
       });
     });
+    s.addText(
+      [
+        { text: "Résout — ", options: { bold: true, italic: true } },
+        { text: it.problem, options: { italic: true } },
+      ],
+      {
+        x: x + 0.25,
+        y: cardY + 2.55,
+        w: colW - 0.5,
+        h: 0.4,
+        fontSize: 10,
+        fontFace: FONT_BODY,
+        color: C.muted,
+        margin: 0,
+      },
+    );
   });
 
-  s.addText("Le bon outil dépend du contexte.", {
+  pageNumber(s, 12, TOTAL);
+}
+
+// ─── Slide 12 — Fonctionnalités · Version A : par persona ───────────────
+threeColumnFeaturesSlide({
+  headerLabel: "FONCTIONNALITÉS · VERSION A · PAR PERSONA",
+  title: "3 profils, 3 problèmes résolus",
+  intro:
+    "Chaque persona a son propre parcours dans l'app, avec les fonctionnalités qui résolvent son problème.",
+  items: [
+    {
+      name: "Bob",
+      role: "Utilisateur",
+      features: [
+        "Soumettre une idée (titre, description, type)",
+        "Voter sur les feedbacks (1 vote / feedback)",
+        "Suivre l'avancement via notifications + commentaires",
+      ],
+      problem:
+        "Ne plus envoyer ses idées dans le vide. Voir ce qui devient une feature, et quand.",
+    },
+    {
+      name: "Yasmine",
+      role: "Développeuse",
+      features: [
+        "Vue kanban dédiée (à faire / en cours / review / livré)",
+        "Drag-drop avec assignation auto",
+        "Notification au créateur à chaque changement de statut",
+      ],
+      problem:
+        "Avoir une vue claire de ce qu'on doit construire, dans quel ordre, en cohérence avec les votes.",
+    },
+    {
+      name: "Alice",
+      role: "Admin produit",
+      features: [
+        "Tableau de bord (KPIs, graphiques, top votes)",
+        "Modération (envoyer au backlog, supprimer)",
+        "Vue tabbed : vue d'ensemble + liste",
+      ],
+      problem:
+        "Décider quoi prioriser à partir de données réelles, pas d'intuition ni de mémoire.",
+    },
+  ],
+});
+
+// ─── Slide 12bis — Fonctionnalités · Version B : par catégorie produit ──
+threeColumnFeaturesSlide({
+  headerLabel: "FONCTIONNALITÉS · VERSION B · PAR CATÉGORIE PRODUIT",
+  title: "3 piliers : cœur, workflow, expérience",
+  intro:
+    "Cœur produit : la mécanique. Workflow équipe : le suivi. Expérience : le confort d'usage.",
+  items: [
+    {
+      name: "Cœur produit",
+      role: "Le minimum vital",
+      features: [
+        "Soumission de feedback (titre, description, type)",
+        "Système de vote 1 user = 1 vote",
+        "Liste triée par votes (tri émergent)",
+      ],
+      problem: "Sans ça, pas de produit. Le minimum pour valider la promesse.",
+    },
+    {
+      name: "Workflow équipe",
+      role: "Du feedback au livrable",
+      features: [
+        "Kanban dev (drag-drop, assignations)",
+        "Dashboard admin (KPIs, charts)",
+        "Notifications de statut + commentaires",
+      ],
+      problem: "Transforme une liste passive en pipeline actif suivi par toute l'équipe.",
+    },
+    {
+      name: "Expérience utilisateur",
+      role: "Le confort qui retient",
+      features: [
+        "Mode sombre + toggle persistant",
+        "Mobile responsive (desktop + smartphone)",
+        "Toasts sur toutes les actions",
+      ],
+      problem: "Sans ça, l'utilisateur fuit après 2 visites. Avec, il revient.",
+    },
+  ],
+});
+
+// ─── Slide 13 — Coder vs Bubble : pros/cons ─────────────────────────────
+{
+  const s = pres.addSlide();
+  s.background = { color: C.bgPaper };
+  tinyHeader(s, "RETOUR D'EXPÉRIENCE");
+  titleH1(s, "Coder en direct + IA  vs  Bubble");
+
+  s.addText(
+    "J'ai pris la route du code direct, recommandée pour les profils dev. Voici ce que j'y ai gagné et ce que ça m'a coûté.",
+    {
+      x: MARGIN,
+      y: 2.5,
+      w: W - 2 * MARGIN,
+      h: 0.7,
+      fontSize: 16,
+      fontFace: FONT_BODY,
+      color: C.muted,
+      italic: true,
+      margin: 0,
+    },
+  );
+
+  const colW = 5.7;
+  const colGap = 0.3;
+  const totalCols = 2 * colW + colGap;
+  const startX = (W - totalCols) / 2;
+  const cardY = 3.4;
+  const cardH = 3.5;
+
+  // ── LEFT card: Coder direct + IA (dark) ──
+  {
+    const x = startX;
+    s.addShape(pres.shapes.RECTANGLE, {
+      x,
+      y: cardY,
+      w: colW,
+      h: cardH,
+      fill: { color: C.ink },
+      line: { color: C.ink, width: 0 },
+    });
+    s.addText("Coder direct + IA", {
+      x: x + 0.35,
+      y: cardY + 0.25,
+      w: colW - 0.7,
+      h: 0.5,
+      fontSize: 20,
+      fontFace: FONT_HEAD,
+      color: "FFFFFF",
+      bold: true,
+      margin: 0,
+    });
+    const pros = [
+      "Tu te concentres sur le produit, pas sur les clics de config",
+      "Le code t'appartient — récupérable, évolutif, transmissible",
+      "Tout est customisable (apparence, interactions, fonctions)",
+      "Compétence réutilisable sur tes prochains projets",
+    ];
+    pros.forEach((p, i) => {
+      const y = cardY + 0.85 + i * 0.45;
+      s.addText(`✓  ${p}`, {
+        x: x + 0.35,
+        y,
+        w: colW - 0.7,
+        h: 0.4,
+        fontSize: 11.5,
+        fontFace: FONT_BODY,
+        color: "F0F0F0",
+        margin: 0,
+      });
+    });
+    s.addText(
+      "✗  Petite courbe au départ (terminal, GitHub) — l'IA réduit énormément cette barrière",
+      {
+        x: x + 0.35,
+        y: cardY + cardH - 0.7,
+        w: colW - 0.7,
+        h: 0.5,
+        fontSize: 11.5,
+        fontFace: FONT_BODY,
+        color: "C8C8C8",
+        margin: 0,
+      },
+    );
+  }
+
+  // ── RIGHT card: Bubble (light) ──
+  {
+    const x = startX + colW + colGap;
+    s.addShape(pres.shapes.RECTANGLE, {
+      x,
+      y: cardY,
+      w: colW,
+      h: cardH,
+      fill: { color: C.bgSoft },
+      line: { color: C.border, width: 1 },
+    });
+    s.addText("Bubble", {
+      x: x + 0.35,
+      y: cardY + 0.25,
+      w: colW - 0.7,
+      h: 0.5,
+      fontSize: 20,
+      fontFace: FONT_HEAD,
+      color: C.ink,
+      bold: true,
+      margin: 0,
+    });
+    const pros = [
+      "Pas d'environnement à installer, tout dans le navigateur",
+      "Plan gratuit pour démarrer",
+      "Si tu connais déjà l'outil, rapide à mettre en route",
+    ];
+    pros.forEach((p, i) => {
+      const y = cardY + 0.85 + i * 0.4;
+      s.addText(`✓  ${p}`, {
+        x: x + 0.35,
+        y,
+        w: colW - 0.7,
+        h: 0.4,
+        fontSize: 11,
+        fontFace: FONT_BODY,
+        color: C.inkSoft,
+        margin: 0,
+      });
+    });
+    const cons = [
+      "🔒 Tu es enfermé dans Bubble — code non récupérable. Migration = tout réécrire.",
+      "Compétence ultra-spécialisée à Bubble, pas portable ailleurs",
+      "Limité dès qu'on veut une fonctionnalité sur mesure (ex : kanban Pulse)",
+      "Tarif grimpe vite quand l'app prend de l'ampleur",
+    ];
+    cons.forEach((c, i) => {
+      const y = cardY + 2.1 + i * 0.34;
+      s.addText(`✗  ${c}`, {
+        x: x + 0.35,
+        y,
+        w: colW - 0.7,
+        h: 0.34,
+        fontSize: 10,
+        fontFace: FONT_BODY,
+        color: C.muted,
+        margin: 0,
+      });
+    });
+  }
+
+  pageNumber(s, 13, TOTAL);
+}
+
+// ─── Slide 14 — Quand choisir lequel + timeline Pulse ───────────────────
+{
+  const s = pres.addSlide();
+  s.background = { color: C.bgPaper };
+  tinyHeader(s, "QUAND CHOISIR LEQUEL ?");
+  titleH1(s, "3 cas, et un timing qui change tout");
+
+  // ── Top half: 3 cases ──
+  const cases = [
+    {
+      title: "La barrière a chuté",
+      sub: "Pour les non-devs",
+      body: "L'IA générative a fait tomber la complexité. Un non-dev peut maintenant construire un vrai produit, pas un Bubble bricolé.",
+    },
+    {
+      title: "Focus produit",
+      sub: "Pas la plomberie",
+      body: "Avec l'IA tu décris ce que tu veux, ça génère, tu pilotes. Bubble demande beaucoup de clics juste pour avoir le squelette.",
+    },
+    {
+      title: "Compétence durable",
+      sub: "Autonomie PM / CP",
+      body: "Tu sors avec une méthode réutilisable sur tes prochains projets. Pas verrouillée à un outil propriétaire.",
+    },
+  ];
+
+  const colW = 3.7;
+  const colGap = 0.3;
+  const totalCols = cases.length * colW + (cases.length - 1) * colGap;
+  const startX = (W - totalCols) / 2;
+  const caseY = 2.55;
+  const caseH = 1.85;
+
+  cases.forEach((c, i) => {
+    const x = startX + i * (colW + colGap);
+    s.addShape(pres.shapes.RECTANGLE, {
+      x,
+      y: caseY,
+      w: colW,
+      h: caseH,
+      fill: { color: C.bgSoft },
+      line: { color: C.border, width: 1 },
+    });
+    s.addShape(pres.shapes.RECTANGLE, {
+      x,
+      y: caseY,
+      w: colW,
+      h: 0.05,
+      fill: { color: C.ink },
+      line: { color: C.ink, width: 0 },
+    });
+    s.addText(c.title, {
+      x: x + 0.25,
+      y: caseY + 0.18,
+      w: colW - 0.5,
+      h: 0.4,
+      fontSize: 15,
+      fontFace: FONT_HEAD,
+      color: C.ink,
+      bold: true,
+      margin: 0,
+    });
+    s.addText(c.sub, {
+      x: x + 0.25,
+      y: caseY + 0.6,
+      w: colW - 0.5,
+      h: 0.3,
+      fontSize: 10,
+      fontFace: FONT_BODY,
+      color: C.mutedLight,
+      bold: true,
+      charSpacing: 3,
+      margin: 0,
+    });
+    s.addText(c.body, {
+      x: x + 0.25,
+      y: caseY + 0.95,
+      w: colW - 0.5,
+      h: 0.85,
+      fontSize: 10.5,
+      fontFace: FONT_BODY,
+      color: C.inkSoft,
+      margin: 0,
+    });
+  });
+
+  // ── Bottom half: timeline ──
+  const tlY = 4.85;
+  s.addText("Timing Pulse", {
     x: MARGIN,
-    y: H - 1.0,
-    w: W - 2 * MARGIN,
-    h: 0.4,
-    fontSize: 14,
+    y: tlY,
+    w: 5,
+    h: 0.3,
+    fontSize: 11,
     fontFace: FONT_BODY,
-    color: C.ink,
+    color: C.mutedLight,
     bold: true,
-    italic: true,
-    align: "center",
+    charSpacing: 4,
     margin: 0,
+  });
+  s.addText(
+    "(mesuré sur git, écarts > 1h entre commits exclus comme pauses)",
+    {
+      x: MARGIN + 1.6,
+      y: tlY,
+      w: 8,
+      h: 0.3,
+      fontSize: 10,
+      fontFace: FONT_BODY,
+      color: C.mutedLight,
+      italic: true,
+      margin: 0,
+    },
+  );
+
+  const milestones = [
+    { time: "~1h", label: "Premier signup réussi", sub: "(prep + code)" },
+    { time: "~3h30", label: "V1 polishée", sub: "(landing, filtres, toasts)" },
+    { time: "~12h", label: "Pulse complet", sub: "(sur 4 jours calendaires)" },
+  ];
+
+  const lineY = tlY + 1.05;
+  s.addShape(pres.shapes.LINE, {
+    x: MARGIN + 1.0,
+    y: lineY,
+    w: W - 2 * MARGIN - 2.0,
+    h: 0,
+    line: { color: C.border, width: 2 },
+  });
+
+  const tlStartX = MARGIN + 1.0;
+  const tlEndX = W - MARGIN - 1.0;
+  const tlSpan = tlEndX - tlStartX;
+  milestones.forEach((m, i) => {
+    const x = tlStartX + (i * tlSpan) / (milestones.length - 1);
+    s.addShape(pres.shapes.OVAL, {
+      x: x - 0.15,
+      y: lineY - 0.15,
+      w: 0.3,
+      h: 0.3,
+      fill: { color: C.ink },
+      line: { color: C.ink, width: 0 },
+    });
+    s.addText(m.time, {
+      x: x - 1.2,
+      y: lineY - 0.85,
+      w: 2.4,
+      h: 0.6,
+      fontSize: 28,
+      fontFace: FONT_HEAD,
+      color: C.ink,
+      bold: true,
+      align: "center",
+      margin: 0,
+    });
+    s.addText(m.label, {
+      x: x - 1.5,
+      y: lineY + 0.25,
+      w: 3.0,
+      h: 0.3,
+      fontSize: 12,
+      fontFace: FONT_BODY,
+      color: C.ink,
+      bold: true,
+      align: "center",
+      margin: 0,
+    });
+    s.addText(m.sub, {
+      x: x - 1.5,
+      y: lineY + 0.55,
+      w: 3.0,
+      h: 0.3,
+      fontSize: 10,
+      fontFace: FONT_BODY,
+      color: C.muted,
+      align: "center",
+      italic: true,
+      margin: 0,
+    });
   });
 
   pageNumber(s, 14, TOTAL);
