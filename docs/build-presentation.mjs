@@ -494,13 +494,13 @@ function auditSlide({ axisNum, headerLabel, title, intro, bullets, footer }) {
   titleH1(s, "Les outils, en une vue");
 
   s.addText(
-    "Cinq blocs qui s'emboîtent : du code source jusqu'à l'app en ligne, plus les services qui font le sale boulot.",
+    "Six blocs qui s'emboîtent : du code source jusqu'à l'app en ligne, plus les services et l'assistant qui ont accéléré toute la chaîne.",
     {
       x: MARGIN,
-      y: 2.5,
+      y: 2.4,
       w: W - 2 * MARGIN,
-      h: 0.7,
-      fontSize: 16,
+      h: 0.55,
+      fontSize: 15,
       fontFace: FONT_BODY,
       color: C.muted,
       italic: true,
@@ -534,11 +534,16 @@ function auditSlide({ axisNum, headerLabel, title, intro, bullets, footer }) {
       tools: "Resend · Upstash Redis · Sentry",
       role: "Emails (vérification, reset). Anti-spam (rate limit). Détection d'erreurs en prod.",
     },
+    {
+      name: "Assistant IA",
+      tools: "Claude",
+      role: "Génération de code, refactor, audit, debug. L'outil qui a fait chuter le ticket d'entrée pour un non-dev.",
+    },
   ];
 
-  const cardY0 = 3.5;
-  const cardH = 0.55;
-  const cardGap = 0.1;
+  const cardY0 = 3.1;
+  const cardH = 0.5;
+  const cardGap = 0.08;
   blocks.forEach((b, i) => {
     const y = cardY0 + i * (cardH + cardGap);
     s.addShape(pres.shapes.RECTANGLE, {
@@ -597,10 +602,10 @@ function auditSlide({ axisNum, headerLabel, title, intro, bullets, footer }) {
     "Tout est gratuit (free tiers), connecté avec quelques clics dans des dashboards.",
     {
       x: MARGIN,
-      y: H - 1.0,
-      w: W - 2 * MARGIN,
-      h: 0.4,
-      fontSize: 12,
+      y: H - 0.85,
+      w: W - 2 * MARGIN - 1.2,
+      h: 0.35,
+      fontSize: 11,
       fontFace: FONT_BODY,
       color: C.mutedLight,
       italic: true,
