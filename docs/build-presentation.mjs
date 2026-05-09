@@ -672,21 +672,21 @@ pageNumber(
   pageNumber(s, 9, TOTAL);
 }
 
-// ─── Slide 10 — Sécurité ────────────────────────────────────────────────
+// ─── Slide 10 — L'approche audit (4 axes) ───────────────────────────────
 {
   const s = pres.addSlide();
   s.background = { color: C.bgPaper };
-  tinyHeader(s, "SÉCURITÉ");
-  titleH1(s, "Ce qui protège l'app");
+  tinyHeader(s, "AUDIT INTERNE");
+  titleH1(s, "Stress-testé sur 4 axes");
 
   s.addText(
-    "Avec des comptes utilisateurs et des données privées en jeu, plusieurs couches sont indispensables.",
+    "Audit que je me suis imposé à mi-parcours. Sur chaque axe : écarts identifiés, correctifs livrés, le tout documenté dans le README.",
     {
       x: MARGIN,
       y: 2.5,
       w: W - 2 * MARGIN,
-      h: 0.7,
-      fontSize: 17,
+      h: 0.8,
+      fontSize: 16,
       fontFace: FONT_BODY,
       color: C.muted,
       italic: true,
@@ -694,55 +694,123 @@ pageNumber(
     },
   );
 
-  // 4 bullets, slightly tighter spacing than tool slides (0.7 vs 0.85)
-  const bullets = [
+  const axes = [
     {
-      label: "Mots de passe protégés",
-      body: "chiffrés avec bcrypt, jamais stockés en clair, illisibles même pour moi.",
+      num: "01",
+      name: "Cybersécurité",
+      bullets: [
+        "bcrypt + cookie JWT signé httpOnly",
+        "Rate limiting per-IP : anti-injection en masse de comptes",
+        "Vérification email + reset password (Resend)",
+      ],
     },
     {
-      label: "Sessions sécurisées",
-      body: "cookie signé par le serveur, transmis en HTTPS, inaccessible au code de la page.",
+      num: "02",
+      name: "Architecture",
+      bullets: [
+        "Service layer Airtable splitté par domaine",
+        "Helpers réutilisables : requireAuth, useApiMutation",
+        "Cache + invalidation par tag",
+      ],
     },
     {
-      label: "Anti-bombardement",
-      body: "login bloqué après 5 essais en 1 minute. Vote, signup et reset password aussi limités.",
+      num: "03",
+      name: "Qualité du code",
+      bullets: [
+        "0 erreur TypeScript, 0 warning ESLint",
+        "10 tests E2E Playwright + CI verte à chaque PR",
+        "Constantes centralisées, magic numbers éliminés",
+      ],
     },
     {
-      label: "Vérification + reset par email",
-      body: "pas d'inscription avec une adresse fictive. Liens à expiration courte, à usage unique.",
+      num: "04",
+      name: "Accessibilité",
+      bullets: [
+        "Cible WCAG 2.1 AA",
+        "Focus visible, skip-link, contraste AA",
+        "role=alert sur erreurs, prefers-reduced-motion respecté",
+      ],
     },
   ];
-  bullets.forEach((b, i) => {
-    const y = 3.55 + i * 0.7;
+
+  const colW = 2.7;
+  const colGap = 0.3;
+  const totalCols = axes.length * colW + (axes.length - 1) * colGap;
+  const startX = (W - totalCols) / 2;
+  const colY = 3.55;
+  const colH = 3.0;
+
+  axes.forEach((axis, i) => {
+    const x = startX + i * (colW + colGap);
+    // Card
     s.addShape(pres.shapes.RECTANGLE, {
-      x: MARGIN,
-      y,
-      w: 0.04,
-      h: 0.55,
+      x,
+      y: colY,
+      w: colW,
+      h: colH,
+      fill: { color: C.bgSoft },
+      line: { color: C.border, width: 1 },
+    });
+    // Top accent stripe
+    s.addShape(pres.shapes.RECTANGLE, {
+      x,
+      y: colY,
+      w: colW,
+      h: 0.06,
       fill: { color: C.ink },
       line: { color: C.ink, width: 0 },
     });
-    s.addText(
-      [
-        { text: b.label + " — ", options: { bold: true, color: C.ink } },
-        { text: b.body, options: { color: C.inkSoft } },
-      ],
-      {
-        x: MARGIN + 0.25,
-        y,
-        w: W - 2 * MARGIN - 0.25,
-        h: 0.6,
-        fontSize: 14,
+    // Axis number
+    s.addText(axis.num, {
+      x: x + 0.25,
+      y: colY + 0.2,
+      w: colW - 0.5,
+      h: 0.35,
+      fontSize: 11,
+      fontFace: FONT_BODY,
+      color: C.mutedLight,
+      bold: true,
+      charSpacing: 4,
+      margin: 0,
+    });
+    // Axis name
+    s.addText(axis.name, {
+      x: x + 0.25,
+      y: colY + 0.55,
+      w: colW - 0.5,
+      h: 0.5,
+      fontSize: 17,
+      fontFace: FONT_HEAD,
+      color: C.ink,
+      bold: true,
+      margin: 0,
+    });
+    // Bullets
+    axis.bullets.forEach((b, j) => {
+      const by = colY + 1.15 + j * 0.6;
+      s.addShape(pres.shapes.OVAL, {
+        x: x + 0.25,
+        y: by + 0.13,
+        w: 0.1,
+        h: 0.1,
+        fill: { color: C.ink },
+        line: { color: C.ink, width: 0 },
+      });
+      s.addText(b, {
+        x: x + 0.45,
+        y: by,
+        w: colW - 0.7,
+        h: 0.55,
+        fontSize: 11,
         fontFace: FONT_BODY,
-        valign: "middle",
+        color: C.inkSoft,
         margin: 0,
-      },
-    );
+      });
+    });
   });
 
   s.addText(
-    "Audit complet du code documenté dans le README — items identifiés, traités, justifiés.",
+    "Pour chaque correctif livré : un commit dédié + une entrée dans le README.",
     {
       x: MARGIN,
       y: H - 1.0,
