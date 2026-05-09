@@ -1311,9 +1311,9 @@ threeColumnFeaturesSlide({
   );
 
   const milestones = [
-    { time: "~1h", label: "Premier signup réussi", sub: "(prep + code)" },
-    { time: "~3h30", label: "V1 polishée", sub: "(landing, filtres, toasts)" },
-    { time: "~12h", label: "Pulse complet", sub: "(sur 4 jours calendaires)" },
+    { time: "~1h", label: "POC", sub: "(le core tourne end-to-end)" },
+    { time: "~3h30", label: "MVP", sub: "(prêt pour de vrais users)" },
+    { time: "~12h", label: "Produit actuel", sub: "(sur 4 jours calendaires)" },
   ];
 
   const lineY = tlY + 1.05;
