@@ -3,3 +3,6 @@ package-lock.json
 
 # Office lock files (created when .pptx is open in PowerPoint / Keynote)
 ~$*
+
+# Keynote working copies (personal edits, not part of the build pipeline)
+*.key
