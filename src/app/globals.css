@@ -4,12 +4,12 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* Surfaces */
+  /* Surfaces — léger tint rose chaud sur les fonds pour cohérence brand */
   --color-bg-primary: #ffffff;
-  --color-bg-secondary: #f7f7f5;
-  --color-bg-tertiary: #f0efec;
+  --color-bg-secondary: #faf3f4;
+  --color-bg-tertiary: #f5eaeb;
 
-  /* Textes */
+  /* Textes — charbon, contraste AA préservé */
   --color-text-primary: #1a1a1a;
   --color-text-secondary: #5a5a5a;
   /* C-3: bumped from #8a8a8a (~3.4:1) to #6e6e6e for WCAG AA compliance
@@ -17,13 +17,14 @@
   --color-text-tertiary: #6e6e6e;
   --color-text-info: #ffffff;
 
-  /* Bordures */
-  --color-border-secondary: #d8d8d5;
-  --color-border-tertiary: #e8e8e5;
+  /* Bordures — warm tint */
+  --color-border-secondary: #e0cfd1;
+  --color-border-tertiary: #ebdcde;
 
-  /* Action / primary button */
-  --color-action: #1a1a1a;
-  --color-action-hover: #333333;
+  /* Action / primary button — ROUGE dominant (red-700 / red-800).
+     Contraste blanc-sur-rouge ≈ 5.5:1, WCAG AA OK. */
+  --color-action: #b91c1c;
+  --color-action-hover: #991b1b;
 
   /* Badges Type */
   --color-type-bug-bg: #fcebeb;
@@ -63,13 +64,17 @@
   --color-text-secondary: #a3a3a3;
   /* C-3: bumped from #707070 (~3.0:1 on dark bg) to #9a9a9a for AA (~4.7:1). */
   --color-text-tertiary: #9a9a9a;
-  --color-text-info: #1a1a1a;
+  /* Text on the action button — switched from black to white to stay
+     readable on the new red CTA in dark mode. */
+  --color-text-info: #ffffff;
 
   --color-border-secondary: #3a3a3a;
   --color-border-tertiary: #2a2a2a;
 
-  --color-action: #f5f5f3;
-  --color-action-hover: #d8d8d5;
+  /* Action — red-500 / red-600 (plus brillant qu'en light pour ressortir
+     sur fond sombre). */
+  --color-action: #ef4444;
+  --color-action-hover: #dc2626;
 
   --color-type-bug-bg: #3a1f1f;
   --color-type-bug-text: #ff9b9b;
