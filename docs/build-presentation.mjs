@@ -8,17 +8,23 @@ pres.layout = "LAYOUT_WIDE"; // 13.3 × 7.5
 pres.author = "Vincent Granouillit";
 pres.title = "Pulse — Présentation finale";
 
-// ─── Palette (Pulse: charcoal/gray/white) ──────────────────────────────
+// ─── Palette (Red-dominant, warm whites, charcoal text) ────────────────
 const C = {
-  ink: "1A1A1A",
-  inkSoft: "404040",
-  muted: "5A5A5A",
-  mutedLight: "8A8A8A",
-  border: "D8D8D5",
-  borderLight: "E8E8E5",
-  bgSoft: "F7F7F5",
+  // Text — warm charcoal, kept for body readability on all backgrounds
+  ink: "1F1213",
+  inkSoft: "3A2628",
+  muted: "6B5557",
+  mutedLight: "9A8889",
+  // Backgrounds — slight warm tint to feel "in the red palette" globally
+  border: "ECD9DB",
+  borderLight: "F2E5E7",
+  bgSoft: "FBF4F5",
   bgPaper: "FFFFFF",
-  accent: "1A1A1A", // monochrome — accent = pure black/charcoal
+  // RED — the dominant accent. Used for stripes, bullets, title
+  // underlines, the Vercel hub, the "Coder direct" highlight card, etc.
+  accent: "B91C1C",     // Tailwind red-700 — medium-dark, professional
+  accentDark: "7F1D1D", // red-900 — section breaks + large surfaces
+  accentLight: "FEE2E2",// red-100 — reserved for soft highlights
 };
 
 const FONT_HEAD = "Helvetica Neue";
@@ -76,7 +82,7 @@ function titleH1(slide, title) {
     y: 2.05,
     w: 0.6,
     h: 0,
-    line: { color: C.ink, width: 1.5 },
+    line: { color: C.accent, width: 1.5 },
   });
 }
 
@@ -169,7 +175,7 @@ const TOTAL = 15;
       y: y + 0.18,
       w: 0.18,
       h: 0.18,
-      fill: { color: C.ink },
+      fill: { color: C.accent },
       line: { color: C.ink, width: 0 },
     });
     s.addText(txt, {
@@ -202,7 +208,7 @@ const TOTAL = 15;
 // ─── Slide 3 — Section break: Partie 1 ──────────────────────────────────
 {
   const s = pres.addSlide();
-  s.background = { color: C.ink };
+  s.background = { color: C.accentDark };
 
   s.addText("PARTIE 1", {
     x: MARGIN,
@@ -356,13 +362,13 @@ const TOTAL = 15;
     line: { color: C.muted, width: 1 },
   });
 
-  // Vercel (the hub) — dark, taller
+  // Vercel (the hub) — dark red, taller
   s.addShape(pres.shapes.RECTANGLE, {
     x: vercelX,
     y: midY,
     w: vercelW,
     h: vercelH,
-    fill: { color: C.ink },
+    fill: { color: C.accentDark },
     line: { color: C.ink, width: 0 },
   });
   s.addText("Vercel", {
@@ -450,7 +456,7 @@ function auditSlide({ axisNum, headerLabel, title, intro, bullets, footer }) {
       y,
       w: 0.04,
       h: 0.6,
-      fill: { color: C.ink },
+      fill: { color: C.accent },
       line: { color: C.ink, width: 0 },
     });
     s.addText(
@@ -559,7 +565,7 @@ function auditSlide({ axisNum, headerLabel, title, intro, bullets, footer }) {
       y,
       w: 0.06,
       h: cardH,
-      fill: { color: C.ink },
+      fill: { color: C.accent },
       line: { color: C.ink, width: 0 },
     });
     s.addText(b.name, {
@@ -731,7 +737,7 @@ auditSlide({
 // ─── Slide 10 — Section break: Partie 2 ─────────────────────────────────
 {
   const s = pres.addSlide();
-  s.background = { color: C.ink };
+  s.background = { color: C.accentDark };
 
   s.addText("PARTIE 2", {
     x: MARGIN,
@@ -814,7 +820,7 @@ auditSlide({
       y,
       w: 0.04,
       h: 0.75,
-      fill: { color: C.ink },
+      fill: { color: C.accent },
       line: { color: C.ink, width: 0 },
     });
     s.addText(
@@ -895,7 +901,7 @@ function threeColumnFeaturesSlide({ headerLabel, title, intro, items }) {
       y: cardY,
       w: colW,
       h: 0.06,
-      fill: { color: C.ink },
+      fill: { color: C.accent },
       line: { color: C.ink, width: 0 },
     });
     s.addText(it.name, {
@@ -928,7 +934,7 @@ function threeColumnFeaturesSlide({ headerLabel, title, intro, items }) {
         y: fy + 0.15,
         w: 0.1,
         h: 0.1,
-        fill: { color: C.ink },
+        fill: { color: C.accent },
         line: { color: C.ink, width: 0 },
       });
       s.addText(f, {
@@ -1075,7 +1081,7 @@ threeColumnFeaturesSlide({
   const cardY = 3.4;
   const cardH = 3.5;
 
-  // ── LEFT card: Coder direct + IA (dark) ──
+  // ── LEFT card: Coder direct + IA (dark red) ──
   {
     const x = startX;
     s.addShape(pres.shapes.RECTANGLE, {
@@ -1083,7 +1089,7 @@ threeColumnFeaturesSlide({
       y: cardY,
       w: colW,
       h: cardH,
-      fill: { color: C.ink },
+      fill: { color: C.accentDark },
       line: { color: C.ink, width: 0 },
     });
     s.addText("Coder direct + IA", {
@@ -1243,7 +1249,7 @@ threeColumnFeaturesSlide({
       y: caseY,
       w: colW,
       h: 0.05,
-      fill: { color: C.ink },
+      fill: { color: C.accent },
       line: { color: C.ink, width: 0 },
     });
     s.addText(c.title, {
@@ -1335,7 +1341,7 @@ threeColumnFeaturesSlide({
       y: lineY - 0.15,
       w: 0.3,
       h: 0.3,
-      fill: { color: C.ink },
+      fill: { color: C.accent },
       line: { color: C.ink, width: 0 },
     });
     s.addText(m.time, {
@@ -1402,7 +1408,7 @@ threeColumnFeaturesSlide({
     y: 4.4,
     w: 0.8,
     h: 0,
-    line: { color: C.ink, width: 1.5 },
+    line: { color: C.accent, width: 1.5 },
   });
 
   s.addText("github.com/VincentG32/pulse", {
