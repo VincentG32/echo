@@ -19,11 +19,12 @@ Stack : **Next.js 16** (App Router) · **TypeScript** · **Tailwind v4** · **Ai
 6. [Accessibilité](#accessibilité)
 7. [Setup local](#setup-local)
 8. [Schéma Airtable](#schéma-airtable)
-9. [Structure du code](#structure-du-code)
-10. [Décisions techniques (mini-ADRs)](#décisions-techniques-mini-adrs)
-11. [Roadmap V2 / V3](#roadmap-v2--v3)
-12. [Limitations connues](#limitations-connues)
-13. [Crédits](#crédits)
+9. [Automatisations Airtable](#automatisations-airtable)
+10. [Structure du code](#structure-du-code)
+11. [Décisions techniques (mini-ADRs)](#décisions-techniques-mini-adrs)
+12. [Roadmap V2 / V3](#roadmap-v2--v3)
+13. [Limitations connues](#limitations-connues)
+14. [Crédits](#crédits)
 
 ---
 
@@ -394,6 +395,11 @@ Le workflow `e2e` dans GitHub Actions exécute les 10 tests Playwright sur chaqu
 | `VoteCount` | Number (integer) | dénormalisé pour le tri ; incrémenté dans la même route que `create Vote` |
 | `Creator` | Link → Users | single record link |
 | `CreatedAt` | dateTime | |
+| `Status` | Single select | `to_do` · `in_progress` · `review` · `done` — alimente le workflow kanban `/dev` |
+| `AssignedTo` | Link → Users | dev en charge du feedback (kanban) |
+| `EmailSubject` | Formula | objet d'email pré-formaté, consommé par les automatisations Airtable (cf. [Automatisations Airtable](#automatisations-airtable)) |
+| `BodyTemplate` | Formula | corps d'email pré-formaté multi-lignes, idem |
+| `Archivé` | Checkbox | exclusion des vues admin filtrées, marqueur manuel ou automatique (TTL 30j sur `done`) |
 
 ### Table `Votes`
 | Champ | Type | Notes |
@@ -407,6 +413,93 @@ Le workflow `e2e` dans GitHub Actions exécute les 10 tests Playwright sur chaqu
 
 ⚠️ **Pourquoi les champs texte `FeedbackId` / `UserId` en double des liens ?**
 Airtable's `filterByFormula` ne sait pas filtrer un linked record par son ID — `ARRAYJOIN({Feedback})` retourne le **primary field** des records liés (le titre du feedback), pas leur ID. Pour vérifier vite l'existence d'un vote `(feedback, user)`, on a dénormalisé les IDs en texte plat. Petit coût en stockage, gros gain en simplicité de requête.
+
+---
+
+## Automatisations Airtable
+
+Pulse utilise les **Automatisations natives d'Airtable** pour piloter les alertes admin, en complément du backend Next.js. Cette couche tourne **côté Airtable**, sans toucher au code applicatif. Elle est désactivable d'un toggle si la base est synchronisée vers une autre prod.
+
+### Pourquoi pas tout faire dans le code Next.js ?
+
+Le code applicatif gère déjà l'envoi d'emails transactionnels destinés aux **utilisateurs finaux** (vérification, reset password) via Resend. Mais les alertes admin internes (nouveau feedback, hot vote, lead bloqué) n'ont pas vocation à passer par le code applicatif :
+
+- Elles n'ont **aucun impact UX** côté utilisateur — c'est de la plomberie ops.
+- Elles changent souvent (seuil de votes, destinataire, format) — les piloter en Airtable évite un déploiement à chaque ajustement.
+- Elles peuvent être **désactivées sans toucher au code** (audit, RGPD, vacances admin).
+
+Chemin court assumé : trigger Airtable → email, zéro intermédiaire.
+
+### Champs utilitaires sur `Feedbacks`
+
+Pour rendre les emails **réutilisables et cohérents**, on dérive deux champs `Formula` à partir des données du record. Les automatisations consomment ces champs au lieu de re-templater à chaque fois.
+
+#### `EmailSubject` (Formula)
+
+```airtable
+"🆕 [" & {Type} & "] " & {Title}
+```
+
+Génère un objet du type `🆕 [bug] Pagination casse à partir de 50 feedbacks`. L'emoji rend l'email reconnaissable dans une boîte chargée, le type entre crochets accélère le scan visuel.
+
+#### `BodyTemplate` (Formula)
+
+```airtable
+"Titre : " & {Title} & "
+Type : " & {Type} & "
+Statut : " & {Status} & "
+Votes : " & {VoteCount} & "
+
+Description :
+" & {Description}
+```
+
+Génère un corps multi-lignes structuré, prêt à l'envoi sans mise en forme supplémentaire dans l'automatisation.
+
+#### Pourquoi des Formula plutôt que du templating dans l'automatisation ?
+
+- **Single source of truth** : le format de l'email est défini **une fois**. Toute automatisation qui consomme `{EmailSubject}` ou `{BodyTemplate}` récupère automatiquement la dernière version.
+- **DRY** : N automatisations (alerte création, alerte 10 votes, alerte status change…) réutilisent les mêmes champs sans dupliquer le templating.
+- **Test gratuit** : les champs sont visibles dans la table, on voit le rendu sur tous les records sans lancer une automatisation.
+
+Même principe que les relations entre tables : on évite la duplication, on centralise.
+
+### Automatisation `Alerte nouveau feedback`
+
+| Élément | Configuration |
+|---|---|
+| **Déclencheur** | `When a record is created` → table `Feedbacks` |
+| **Action** | `Send email` |
+| **Destinataire** | adresse admin (configurée en dur dans l'action) |
+| **Objet** | `{EmailSubject}` |
+| **Corps** | `{BodyTemplate}` |
+
+**Comportement** : à chaque nouveau feedback créé (via UI Airtable, formulaire Airtable, ou `POST /api/feedbacks` côté app), l'admin reçoit un email formaté dans la seconde, avec titre, type, votes, description complète.
+
+### Quotas et limites
+
+| Limite | Valeur | Notes |
+|---|---|---|
+| Emails / jour | 100 par destinataire vérifié (plan Free) | Largement suffisant au volume Pulse |
+| Runs d'automatisation / mois | 100 sur Free, 1 000 sur Team | À surveiller si on multiplie les automatisations |
+| Délai de déclenchement | ~30 s à 2 min | Pas du temps réel — acceptable pour des alertes admin |
+
+### Roadmap automations (Tier 2)
+
+Trois extensions naturelles, alignées avec la même architecture (champ formule + déclencheur + action) :
+
+| Automatisation | Déclencheur | Action |
+|---|---|---|
+| **Alerte ≥ 10 votes** | `Record matches conditions` → `VoteCount ≥ 10` | Email à l'admin avec `{EmailSubject}` enrobé d'un `🔥 Hot vote :` |
+| **Email à l'auteur sur changement de statut** | `Record updated` → champ surveillé `Status` | `Find record` dans `Users` (matcher l'email du `Creator`) puis `Send email` |
+| **Auto-archive `done` après 30 jours** | `At a scheduled time` (cron) → records où `Status = done` ET `CreatedAt < today - 30d` ET `Archivé = false` | `Update record` → `Archivé = true` |
+
+### Limitations connues
+
+- **Pas de retry visible** : si l'envoi de l'email échoue (quota dépassé, adresse invalide), Airtable retry silencieusement 2-3 fois puis abandonne. L'onglet `Historique` de l'automatisation log le statut, mais aucun monitoring centralisé (pas remonté à Sentry).
+- **Pas de versioning** : modifier la formule d'`EmailSubject` impacte **rétroactivement** tous les calculs dans toutes les vues qui l'affichent. Aucun historique des formules précédentes.
+- **Pas exportable en code** : les automatisations Airtable ne sont pas versionnables dans Git. Cette section du README est le seul moyen de garder une trace.
+- **Couplage destinataire** : l'email admin est en dur dans l'action. Pour un usage multi-admin, extraire dans une table `Settings`, ou basculer vers un `Find users where Role = admin` puis email à chacun.
 
 ---
 
