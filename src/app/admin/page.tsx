@@ -28,12 +28,20 @@ export default async function AdminPage({ searchParams }: PageProps) {
           <h1 className="text-lg font-semibold text-text-primary">
             Dashboard Admin
           </h1>
-          <Link
-            href="/dev"
-            className="text-xs text-text-secondary hover:text-text-primary underline"
-          >
-            Voir le kanban →
-          </Link>
+          <div className="flex items-center gap-4 text-xs text-text-secondary">
+            {/* V6: CSV export — plain <a download> so the browser handles
+                the file save, no client JS needed. */}
+            <a
+              href="/api/admin/export"
+              download
+              className="hover:text-text-primary underline"
+            >
+              📥 Exporter CSV
+            </a>
+            <Link href="/dev" className="hover:text-text-primary underline">
+              Voir le kanban →
+            </Link>
+          </div>
         </div>
         <p className="text-xs text-text-tertiary mb-5">
           {active === "overview"
