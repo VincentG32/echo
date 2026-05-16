@@ -13,6 +13,19 @@ export async function AdminOverview() {
   const inBacklog = feedbacks.filter((f) => f.status !== null).length;
   const done = feedbacks.filter((f) => f.status === "done").length;
 
+  // V6: bugs marqués bloquant et pas encore livrés. Affichés en rouge
+  // dans la tile + en liste actionnable plus bas. Le statut "done"
+  // exclut les bloquants déjà résolus.
+  const bloquantsEnCours = feedbacks.filter(
+    (f) =>
+      f.type === "bug" &&
+      f.criticality === "bloquant" &&
+      f.status !== "done",
+  );
+  const topBloquants = [...bloquantsEnCours]
+    .sort((a, b) => b.voteCount - a.voteCount)
+    .slice(0, 5);
+
   const typeCounts = FEEDBACK_TYPES.map((type) => ({
     name: type,
     value: feedbacks.filter((f) => f.type === type).length,
@@ -51,14 +64,54 @@ export async function AdminOverview() {
 
   return (
     <>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
         <KpiTile label="Feedbacks" value={totalFeedbacks} emoji="📝" />
         <KpiTile label="Votes" value={totalVotes} emoji="⭐" />
         <KpiTile label="Dans backlog" value={inBacklog} emoji="📌" />
         <KpiTile label="Livrés" value={done} emoji="✅" />
+        <KpiTile
+          label="Bloquants"
+          value={bloquantsEnCours.length}
+          emoji="🔴"
+          alert
+        />
       </div>
 
       <AnalyticsCharts typeCounts={typeCounts} statusCounts={statusCounts} />
+
+      {/* V6: actionable "Top bugs bloquants à traiter" — pleine largeur,
+          au-dessus du grid pour ressortir. Si aucun bloquant en cours :
+          message positif à la place. */}
+      <div className="bg-bg-primary border border-border-tertiary rounded-lg p-5 mt-4">
+        <h2 className="text-sm font-semibold text-text-primary mb-3">
+          🔴 Top bugs bloquants à traiter
+        </h2>
+        {topBloquants.length === 0 ? (
+          <p className="text-sm text-text-secondary">
+            Aucun bloquant en cours ✓
+          </p>
+        ) : (
+          <ol className="space-y-2">
+            {topBloquants.map((f, i) => (
+              <li key={f.id} className="flex items-center gap-3 text-sm">
+                <span className="shrink-0 w-6 h-6 rounded-full bg-crit-bloquant-bg text-crit-bloquant-text text-xs font-medium flex items-center justify-center">
+                  {i + 1}
+                </span>
+                <Link
+                  href={`/feedback/${f.id}`}
+                  className="flex-1 text-text-primary hover:underline truncate"
+                  title={f.title}
+                >
+                  {f.title}
+                </Link>
+                <span className="text-text-secondary tabular-nums shrink-0">
+                  {f.voteCount} ⭐
+                </span>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         <div className="bg-bg-primary border border-border-tertiary rounded-lg p-5">
@@ -119,18 +172,37 @@ function KpiTile({
   label,
   value,
   emoji,
+  alert,
 }: {
   label: string;
   value: number;
   emoji: string;
+  // V6: when alert=true AND value > 0, render the tile with the
+  // bloquant red palette. Signals "something to act on" instantly.
+  alert?: boolean;
 }) {
+  const isAlert = alert && value > 0;
   return (
-    <div className="bg-bg-primary border border-border-tertiary rounded-lg p-4">
-      <div className="flex items-center gap-2 text-xs text-text-tertiary mb-1">
+    <div
+      className={`border rounded-lg p-4 ${
+        isAlert
+          ? "bg-crit-bloquant-bg border-crit-bloquant-text"
+          : "bg-bg-primary border-border-tertiary"
+      }`}
+    >
+      <div
+        className={`flex items-center gap-2 text-xs mb-1 ${
+          isAlert ? "text-crit-bloquant-text" : "text-text-tertiary"
+        }`}
+      >
         <span aria-hidden>{emoji}</span>
         <span className="uppercase tracking-wide">{label}</span>
       </div>
-      <div className="text-2xl font-semibold text-text-primary tabular-nums">
+      <div
+        className={`text-2xl font-semibold tabular-nums ${
+          isAlert ? "text-crit-bloquant-text" : "text-text-primary"
+        }`}
+      >
         {value}
       </div>
     </div>

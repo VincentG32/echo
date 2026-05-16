@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CriticalityBadge } from "@/components/CriticalityBadge";
+import { CriticalityPicker } from "@/components/CriticalityPicker";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TypeBadge } from "@/components/TypeBadge";
 import { listFeedbacks } from "@/lib/airtable";
@@ -36,7 +36,12 @@ export async function AdminList() {
 
             <div className="flex flex-wrap items-center gap-2 mb-3">
               <TypeBadge type={f.type} />
-              {f.criticality && <CriticalityBadge criticality={f.criticality} />}
+              {f.criticality && (
+                <CriticalityPicker
+                  feedbackId={f.id}
+                  initialCriticality={f.criticality}
+                />
+              )}
               {f.status && <StatusBadge status={f.status} />}
               <span className="text-sm font-medium text-text-primary tabular-nums">
                 {f.voteCount} ⭐
@@ -100,7 +105,10 @@ export async function AdminList() {
                   <div className="flex flex-wrap items-center gap-1">
                     <TypeBadge type={f.type} />
                     {f.criticality && (
-                      <CriticalityBadge criticality={f.criticality} />
+                      <CriticalityPicker
+                        feedbackId={f.id}
+                        initialCriticality={f.criticality}
+                      />
                     )}
                   </div>
                 </td>
