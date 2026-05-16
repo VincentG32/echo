@@ -103,6 +103,20 @@ Pas de plugin, pas d'IA, pas d'intégration Slack. Juste l'essentiel pour arrêt
 - **Qualité** — 10 tests E2E Playwright + GitHub Actions CI (typecheck + lint + build à chaque PR), audit code interne (sécurité + architecture + performance + accessibilité) avec correctifs documentés
 - **Accessibilité WCAG 2.1 AA** — audit interne passé, focus visible global, skip-link, contrast AA, `role="alert"` sur erreurs, `prefers-reduced-motion` respecté (cf. [Accessibilité](#accessibilité))
 
+### V6 ✅
+
+- **Criticité sur les bugs** — champ `Feedbacks.Criticality` (`bloquant` / `majeur` / `mineur`) obligatoire à la création quand `type=bug`, exposé via radio buttons avec définitions inline pour forcer un référentiel commun ("L'utilisateur peut-il quand même utiliser l'app ?"). Cf. composant [`CriticalityBadge`](src/components/CriticalityBadge.tsx).
+- **Admin override criticité (2 surfaces)** — un admin peut reclasser un bug à la hausse ou à la baisse :
+  - **Inline dans `/admin?tab=list`** — [`CriticalityPicker`](src/components/CriticalityPicker.tsx), popover sur le badge, 2 clics pour reclasser
+  - **Page détail** — [`AdminCriticalityOverride`](src/app/feedback/[id]/AdminCriticalityOverride.tsx), 3 boutons toggle, pour les workflows "deep dive un feedback"
+  - Les deux UIs partagent l'API `PATCH /api/feedbacks/[id]/criticality` (admin-only). Update optimiste + rollback si erreur.
+- **Dashboard "bloquants en cours"** — sur `/admin?tab=overview` : 5e tile KPI (rouge si > 0) + liste pleine-largeur "🔴 Top bugs bloquants à traiter" triée par votes. Boucle complète tile → liste → page détail → reclasser/livrer.
+- **Alerte 🚨 Bug bloquant** — automatisation Airtable qui envoie un email à l'admin dès qu'un feedback bascule en `type=bug ∧ criticality=bloquant`. Formule `BloquantSubject` côté Airtable. Déclenchée à la création OU sur override admin. Cf. [Automatisations Airtable](#automatisations-airtable).
+- **Export CSV admin** — endpoint `GET /api/admin/export` (admin-only) qui stream un CSV UTF-8 (avec BOM Excel) de tous les feedbacks (ID, Title, Description, Type, Criticality, Status, VoteCount, CreatorName, AssignedToName, CreatedAt). Lien "📥 Exporter CSV" sur le dashboard admin.
+- **Soft delete** — un click "Supprimer" ne détruit plus la ligne Airtable, il pose `Feedbacks.DeletedAt = nowIso()`. Tous les reads filtrent `{DeletedAt} = ''` (`listFeedbacks`, `listBacklogFeedbacks`, `getFeedbackById`). Récupération possible côté admin en vidant le champ dans Airtable.
+- **a11y CI automatisé** — job `A11y · axe-core` ajouté à GitHub Actions. À chaque push/PR, axe-core scanne les 4 pages publiques (Landing, Login, Signup, Forgot password) et fail la CI sur toute violation `serious`/`critical`. Sans gate (E2E_ENABLED), car ces pages n'ont pas besoin d'Airtable de test. **A immédiatement attrapé une régression de contraste** (text-tertiary 4.33:1 sur le fond rose du test de palette).
+- **Charte graphique teal** — tokens d'action passés en teal (`#0F766E` light, `#14B8A6` dark) après un détour par le rouge. Choisi pour ne clasher avec aucun des 7 badges sémantiques (bug-rouge, idée-violet, amélioration-vert, criticité bloquant/majeur/mineur). Contraste validé par axe-core sur les 4 pages publiques.
+
 ---
 
 ## Stack & justifications
@@ -111,7 +125,7 @@ Pas de plugin, pas d'IA, pas d'intégration Slack. Juste l'essentiel pour arrêt
 |---|---|---|
 | Framework | **Next.js 16 App Router** | Server Components pour la liste (pas de `useEffect` de fetch côté client), API routes co-localisées, déploiement Vercel en 1 clic |
 | Langage | **TypeScript strict** | Sécurité de type sur la frontière auth/Airtable où les bugs sont silencieux et coûteux |
-| Styling | **Tailwind CSS v4** | Tokens de design définis en CSS custom properties (`@theme inline` dans `globals.css`), facile à thèmer en V2 (dark mode) |
+| Styling | **Tailwind CSS v4** | Tokens de design définis en CSS custom properties (`@theme inline` dans `globals.css`). Brand color = teal `#0F766E` (light) / `#14B8A6` (dark), choisi V6 pour ne clasher avec aucun des 7 badges sémantiques (bug/idée/amélioration + criticité bloquant/majeur/mineur) |
 | Backend | **API Routes Next.js (Node runtime)** | Mêmes types partagés avec le front via `lib/`, pas de serveur Express à maintenir |
 | Base de données | **Airtable** | Plan gratuit suffisant pour un MVP, UI native pour debug, pas de migrations SQL à gérer pendant la formation |
 | Auth | **JWT custom + bcryptjs** | Pédagogique pour une formation : on voit la mécanique (hash, signature, cookie), pas masqué derrière une lib |
@@ -223,7 +237,7 @@ Cible **WCAG 2.1 AA**. Audit interne passé, correctifs appliqués sur les écar
 |---|---|---|
 | **C-1** | Focus ring global (`:focus-visible` outline action color, 2px, offset 2px) | Tab navigation visible — WCAG 2.4.7 |
 | **C-2** | Skip link "Aller au contenu principal" (sr-only, devient visible au focus) | Bypass du Header pour clavier — WCAG 2.4.1 |
-| **C-3** | `text-tertiary` foncé en light (#6e6e6e) et dark (#9a9a9a) | Contraste AA 4.5:1 — WCAG 1.4.3 |
+| **C-3** | `text-tertiary` foncé en light (`#656565`, abaissé une 2ᵉ fois en V6 quand le job axe-core a flag 4.33:1 sur le test de palette rose) et dark (`#9a9a9a`) | Contraste AA 4.5:1 — WCAG 1.4.3 |
 | **I-3** | `role="alert"` sur tous les blocs d'erreur form (login, signup, submit, reset, FeedbackActions) | Erreurs annoncées par lecteur d'écran après submit |
 | **I-4** | `celebrate()` confetti respecte `prefers-reduced-motion: reduce` | WCAG 2.3.3, sensibilité vestibulaire |
 | **A-2** | `aria-busy={pending}` sur boutons submit pendant les requêtes API | État "occupé" exposé aux lecteurs d'écran |
@@ -239,9 +253,15 @@ Cible **WCAG 2.1 AA**. Audit interne passé, correctifs appliqués sur les écar
 | I-2 | Émojis dans labels de boutons en `aria-hidden` (ex: "📌 Backlog", "🗑️ Supprimer") | ~15 min |
 | I-5 | `aria-current="page"` sur les liens du Header correspondant à la route active | ~15 min |
 
+### Audit automatisé en CI (V6) ✅
+
+Le job **`A11y · axe-core`** dans `.github/workflows/ci.yml` lance [axe-core](https://github.com/dequelabs/axe-core) via Playwright sur les 4 pages publiques (Landing, Login, Signup, Forgot password) à chaque push/PR. Toute violation `serious` ou `critical` fait échouer la CI. Tags scannés : `wcag2a / wcag2aa / wcag21a / wcag21aa`.
+
+Pages logguées-in (`/feedbacks`, `/admin`, `/dev`) restent couvertes par l'audit manuel — pas de test base Airtable de test requis pour ce job de base.
+
 ### Limites connues
-- Pas d'audit a11y automatisé en CI (axe-core ou Lighthouse-CI). Listé en V3 dans la roadmap.
-- Pas de test manuel avec lecteur d'écran réel (NVDA / VoiceOver) — testé via inspection statique du markup.
+- **Pas de test manuel avec lecteur d'écran réel** (NVDA / VoiceOver) — couverture via inspection statique du markup + axe-core uniquement.
+- **Pages logguées-in non scannées en CI** — un job a11y plus large couvrirait `/feedbacks`, `/admin`, `/dev` (nécessiterait `E2E_ENABLED=true` + une base Airtable de test).
 
 ---
 
@@ -397,8 +417,12 @@ Le workflow `e2e` dans GitHub Actions exécute les 10 tests Playwright sur chaqu
 | `CreatedAt` | dateTime | |
 | `Status` | Single select | `to_do` · `in_progress` · `review` · `done` — alimente le workflow kanban `/dev` |
 | `AssignedTo` | Link → Users | dev en charge du feedback (kanban) |
-| `EmailSubject` | Formula | objet d'email pré-formaté, consommé par les automatisations Airtable (cf. [Automatisations Airtable](#automatisations-airtable)) |
+| `Criticality` | Single select | **V6** : `bloquant` · `majeur` · `mineur`. Obligatoire à la création quand `type=bug`, vide sinon. Admin peut override depuis `/admin?tab=list` (picker inline) ou la page détail. |
+| `DeletedAt` | dateTime | **V6** soft delete : null = actif, set = supprimé (filtré hors des reads). Récupération en vidant le champ depuis Airtable. |
+| `EmailSubject` | Formula | objet d'email pré-formaté pour les automatisations Airtable (cf. [Automatisations Airtable](#automatisations-airtable)) |
 | `BodyTemplate` | Formula | corps d'email pré-formaté multi-lignes, idem |
+| `HotVoteSubject` | Formula | **V6** : `"🔥 Hot vote : [" & {Type} & "] " & {Title}`. Consommé par l'auto 🔥 Hot vote (seuil ≥ 5 votes) |
+| `BloquantSubject` | Formula | **V6** : `"🚨 Bug BLOQUANT : " & {Title}`. Consommé par l'auto 🚨 Bug bloquant signalé |
 | `Archivé` | Checkbox | exclusion des vues admin filtrées, marqueur manuel ou automatique (TTL 30j sur `done`) |
 
 ### Table `Votes`
@@ -484,13 +508,34 @@ Même principe que les relations entre tables : on évite la duplication, on cen
 | Runs d'automatisation / mois | 100 sur Free, 1 000 sur Team | À surveiller si on multiplie les automatisations |
 | Délai de déclenchement | ~30 s à 2 min | Pas du temps réel — acceptable pour des alertes admin |
 
-### Roadmap automations (Tier 2)
+### Automatisation `🔥 Hot vote alert` (V6)
 
-Trois extensions naturelles, alignées avec la même architecture (champ formule + déclencheur + action) :
+| Élément | Configuration |
+|---|---|
+| **Déclencheur** | `Record matches conditions` → table `Feedbacks` · `VoteCount ≥ 5` |
+| **Action** | `Send email` |
+| **Destinataire** | adresse admin |
+| **Objet** | `{HotVoteSubject}` (formule : `"🔥 Hot vote : [" & {Type} & "] " & {Title}`) |
+| **Corps** | `{BodyTemplate}` (réutilisé) |
+
+**Comportement** : quand un feedback franchit le seuil de 5 votes, l'admin reçoit instantanément une alerte. Sert à attraper les sujets qui décollent pour décider rapidement s'ils partent au backlog. Seuil ajustable depuis l'UI Airtable sans toucher au code.
+
+### Automatisation `🚨 Bug bloquant signalé` (V6)
+
+| Élément | Configuration |
+|---|---|
+| **Déclencheur** | `Record matches conditions` → table `Feedbacks` · `Type = bug` ET `Criticality = bloquant` |
+| **Action** | `Send email` |
+| **Destinataire** | adresse admin |
+| **Objet** | `{BloquantSubject}` (formule : `"🚨 Bug BLOQUANT : " & {Title}`) |
+| **Corps** | `{BodyTemplate}` (réutilisé) |
+
+**Comportement** : se déclenche à la création d'un nouveau bug bloquant **OU** sur un override admin qui bascule un bug existant en bloquant. Boucle parfaite avec le tile KPI "Bloquants" et la liste "Top bugs bloquants à traiter" sur le dashboard.
+
+### Roadmap automations restantes
 
 | Automatisation | Déclencheur | Action |
 |---|---|---|
-| **Alerte ≥ 10 votes** | `Record matches conditions` → `VoteCount ≥ 10` | Email à l'admin avec `{EmailSubject}` enrobé d'un `🔥 Hot vote :` |
 | **Email à l'auteur sur changement de statut** | `Record updated` → champ surveillé `Status` | `Find record` dans `Users` (matcher l'email du `Creator`) puis `Send email` |
 | **Auto-archive `done` après 30 jours** | `At a scheduled time` (cron) → records où `Status = done` ET `CreatedAt < today - 30d` ET `Archivé = false` | `Update record` → `Archivé = true` |
 
@@ -581,17 +626,24 @@ Organisée par effort × impact. Les tiers sont indépendants — vous pouvez pi
 
 ### 🟢 Tier 1 — Quick wins déjà livrés (cf. [Fonctionnalités V1.5](#quick-wins-ajoutés-v15-))
 
+### 🟢 Tier 1 bis — Déjà livré V6 (cf. [Évolutions V6](#v6-))
+
+- Criticité bugs (bloquant/majeur/mineur) + admin override (picker inline + page détail) + dashboard "Bloquants"
+- Alerte 🚨 Bug bloquant (Airtable Automation)
+- Alerte 🔥 Hot vote ≥ 5 votes (Airtable Automation)
+- Export CSV admin
+- Soft delete (DeletedAt)
+- a11y CI automatisé (axe-core/playwright sur 4 pages publiques)
+
 ### 🟡 Tier 2 — V2 (1-3 jours par feature)
 
 | Feature | Description | Pourquoi |
 |---|---|---|
-| **Status sur feedback** | Champ `Status` (open / planned / in-progress / shipped / declined) modifiable par admin, badge sur la liste | Évite de re-soumettre des idées déjà traitées |
 | **Recherche full-text** | Input avec debounce, filtre `?q=...` côté API via `SEARCH({Title}, q)` Airtable | Demandé par tous les seed users (top des votes !) |
 | **Tags / catégories** | Champ `multipleSelects` Airtable, multi-filtre combiné avec type | Pour équipes multi-produits |
-| **Export CSV** (admin) | API `/api/admin/export` qui stream un CSV | Reporting mensuel |
-| **Soft delete** | Champ `DeletedAt` au lieu de `DELETE` Airtable | Récupération en cas d'erreur admin |
 | **Pagination cursor** | `?cursor=...` + bouton "Charger plus" | Au-delà de 100 feedbacks |
 | **Optimistic vote** | Update UI **avant** la réponse API, rollback si 409 | Réactivité perçue |
+| **Filtre criticité sur `/admin?tab=list`** | Sélecteur "bloquant uniquement" pour triage rapide | Compagnon naturel du tile KPI Bloquants |
 
 ### 🔴 Tier 3 — V3 / refonte (1+ semaine par feature)
 
@@ -601,7 +653,6 @@ Organisée par effort × impact. Les tiers sont indépendants — vous pouvez pi
 | **NextAuth.js** | OAuth GitHub/Google, sessions DB révocables, password reset out-of-the-box | Couche d'abstraction supplémentaire à comprendre |
 | **Notifications email** | Vote reçu, status change envoyés par email (en plus de la bannière in-app actuelle) | Resend + queue (Inngest ou Vercel Cron) |
 | **i18n FR/EN** | Élargir l'audience | next-intl + refactor strings |
-| **Audit a11y automatisé en CI** | Audit manuel WCAG AA déjà passé (cf. [Accessibilité](#accessibilité)). Manque axe-core / Lighthouse-CI pour ne pas régresser | Job CI `@axe-core/playwright`, ~2h setup |
 | **Mobile redesign** | Cards trop denses sur smartphone | 1-2 jours UX + tests sur vrais devices |
 
 ---
