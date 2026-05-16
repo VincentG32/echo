@@ -4,30 +4,28 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* Surfaces — léger tint rose chaud sur les fonds pour cohérence brand */
+  /* Surfaces — neutres gris-blanc, le brand vit sur les CTA */
   --color-bg-primary: #ffffff;
-  --color-bg-secondary: #faf3f4;
-  --color-bg-tertiary: #f5eaeb;
+  --color-bg-secondary: #f7f7f5;
+  --color-bg-tertiary: #f0efec;
 
   /* Textes — charbon, contraste AA préservé */
   --color-text-primary: #1a1a1a;
   --color-text-secondary: #5a5a5a;
-  /* C-3 → V6: bumped from #8a8a8a then #6e6e6e to #656565 — the
-     pink-tinted bg-tertiary (#f5eaeb) brought the ratio down to 4.33:1
-     against text-tertiary. #656565 clears 4.7:1 against bg-tertiary
-     and 5.7:1 against bg-primary, stays visually distinct from
-     text-secondary #5a5a5a. Caught by the new a11y CI job. */
+  /* C-3 → V6: bumped from #8a8a8a then #6e6e6e to #656565. #656565
+     clears 4.9:1 on bg-tertiary and 5.7:1 on bg-primary, stays visually
+     distinct from text-secondary #5a5a5a. Validated by axe-core in CI. */
   --color-text-tertiary: #656565;
   --color-text-info: #ffffff;
 
-  /* Bordures — warm tint */
-  --color-border-secondary: #e0cfd1;
-  --color-border-tertiary: #ebdcde;
+  /* Bordures — neutres */
+  --color-border-secondary: #d8d8d5;
+  --color-border-tertiary: #e8e8e5;
 
-  /* Action / primary button — ROUGE dominant (red-700 / red-800).
-     Contraste blanc-sur-rouge ≈ 5.5:1, WCAG AA OK. */
-  --color-action: #b91c1c;
-  --color-action-hover: #991b1b;
+  /* Action / primary button — TEAL profond (teal-700 / teal-800).
+     Contraste blanc-sur-teal-700 ≈ 5.5:1, WCAG AA OK. */
+  --color-action: #0f766e;
+  --color-action-hover: #115e59;
 
   /* Badges Type */
   --color-type-bug-bg: #fcebeb;
@@ -75,17 +73,18 @@
   --color-text-secondary: #a3a3a3;
   /* C-3: bumped from #707070 (~3.0:1 on dark bg) to #9a9a9a for AA (~4.7:1). */
   --color-text-tertiary: #9a9a9a;
-  /* Text on the action button — switched from black to white to stay
-     readable on the new red CTA in dark mode. */
-  --color-text-info: #ffffff;
+  /* Text on the action button — charcoal because the bright teal-500
+     CTA has plenty of luminance; dark text gives ~7:1 contrast, white
+     would only be ~2.5:1 and would fail AA. */
+  --color-text-info: #1a1a1a;
 
   --color-border-secondary: #3a3a3a;
   --color-border-tertiary: #2a2a2a;
 
-  /* Action — red-500 / red-600 (plus brillant qu'en light pour ressortir
-     sur fond sombre). */
-  --color-action: #ef4444;
-  --color-action-hover: #dc2626;
+  /* Action — teal-500 / teal-600 (plus brillant qu'en light pour
+     ressortir sur fond sombre). */
+  --color-action: #14b8a6;
+  --color-action-hover: #0d9488;
 
   --color-type-bug-bg: #3a1f1f;
   --color-type-bug-text: #ff9b9b;
