@@ -32,6 +32,9 @@ export type FeedbackRecord = {
   // V6: criticality — set at creation for bugs, null for idée/amélioration.
   // Admin can override (up or down) via PATCH /api/feedbacks/[id]/criticality.
   criticality: FeedbackCriticality | null;
+  // V6 soft delete: ISO timestamp when the feedback was logically removed.
+  // null = active, anything else = soft-deleted (excluded from all lists).
+  deletedAt: string | null;
 };
 
 export type FeedbackWithCreator = FeedbackRecord & {
@@ -54,6 +57,7 @@ export function mapFeedback(r: AirtableRecord): FeedbackRecord {
     status: (f.Status as FeedbackStatus | undefined) ?? null,
     assignedToId: assignedIds[0] ?? null,
     criticality: (f.Criticality as FeedbackCriticality | undefined) ?? null,
+    deletedAt: f.DeletedAt ? String(f.DeletedAt) : null,
   };
 }
 
@@ -74,10 +78,16 @@ export async function enrichWithUsers(
   }));
 }
 
+// V6 soft delete: filter out feedbacks where DeletedAt is set.
+// Airtable formula `{DeletedAt} = ''` (BLANK match) is the canonical
+// way to test for an unset datetime field.
+const NOT_DELETED = `{DeletedAt} = ''`;
+
 export const listFeedbacks = unstable_cache(
   async function listFeedbacks(): Promise<FeedbackWithCreator[]> {
     const records = await feedbacksTable
       .select({
+        filterByFormula: NOT_DELETED,
         sort: [{ field: "VoteCount", direction: "desc" }],
         pageSize: AIRTABLE_PAGE_SIZE,
       })
@@ -99,6 +109,9 @@ export async function getFeedbackById(
     return null;
   }
   const feedback = mapFeedback(record);
+  // V6 soft delete: treat deleted feedbacks as not found from user-facing
+  // routes. The record still exists in Airtable for admin recovery.
+  if (feedback.deletedAt) return null;
   const enriched = await enrichWithUsers([feedback]);
   return enriched[0] ?? null;
 }
@@ -154,8 +167,13 @@ export async function setCriticality(
   return mapFeedback(updated[0]);
 }
 
+// V6: soft delete. The record is kept in Airtable with DeletedAt set,
+// so an admin can recover it manually. The lib treats deleted feedbacks
+// as not found from the API surface.
 export async function deleteFeedback(id: string): Promise<void> {
-  await feedbacksTable.destroy([id]);
+  await feedbacksTable.update([
+    { id, fields: { DeletedAt: nowIso() } },
+  ]);
 }
 
 export async function incrementVoteCount(
@@ -169,7 +187,8 @@ export const listBacklogFeedbacks = unstable_cache(
   async function listBacklogFeedbacks(): Promise<FeedbackWithCreator[]> {
     const records = await feedbacksTable
       .select({
-        filterByFormula: `{Status} != ''`,
+        // V6 soft delete: combine status filter with NOT_DELETED.
+        filterByFormula: `AND({Status} != '', ${NOT_DELETED})`,
         sort: [{ field: "VoteCount", direction: "desc" }],
         pageSize: AIRTABLE_PAGE_SIZE,
       })
