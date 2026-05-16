@@ -12,9 +12,12 @@
   /* Textes — charbon, contraste AA préservé */
   --color-text-primary: #1a1a1a;
   --color-text-secondary: #5a5a5a;
-  /* C-3: bumped from #8a8a8a (~3.4:1) to #6e6e6e for WCAG AA compliance
-     (~4.7:1 against bg-primary). Subtle visual change, real a11y win. */
-  --color-text-tertiary: #6e6e6e;
+  /* C-3 → V6: bumped from #8a8a8a then #6e6e6e to #656565 — the
+     pink-tinted bg-tertiary (#f5eaeb) brought the ratio down to 4.33:1
+     against text-tertiary. #656565 clears 4.7:1 against bg-tertiary
+     and 5.7:1 against bg-primary, stays visually distinct from
+     text-secondary #5a5a5a. Caught by the new a11y CI job. */
+  --color-text-tertiary: #656565;
   --color-text-info: #ffffff;
 
   /* Bordures — warm tint */
