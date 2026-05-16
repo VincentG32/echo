@@ -3,6 +3,7 @@
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import Link from "next/link";
+import { CriticalityBadge } from "@/components/CriticalityBadge";
 import { TypeBadge } from "@/components/TypeBadge";
 import type { FeedbackStatus } from "@/lib/schemas";
 import type { CardActions, KanbanFeedback } from "./kanban-types";
@@ -78,8 +79,11 @@ function Card({
         {feedback.title}
       </Link>
 
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex items-center gap-2 mb-2 flex-wrap">
         <TypeBadge type={feedback.type} />
+        {feedback.criticality && (
+          <CriticalityBadge criticality={feedback.criticality} />
+        )}
         <span className="text-xs text-text-tertiary tabular-nums">
           {feedback.voteCount} ⭐
         </span>

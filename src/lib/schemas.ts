@@ -3,6 +3,11 @@ import { z } from "zod";
 export const FEEDBACK_TYPES = ["bug", "idée", "amélioration"] as const;
 export type FeedbackType = (typeof FEEDBACK_TYPES)[number];
 
+// V6: criticité — obligatoire à la création quand type=bug, optionnel
+// sinon. Admin peut override (monter ou descendre) depuis la page détail.
+export const FEEDBACK_CRITICALITIES = ["bloquant", "majeur", "mineur"] as const;
+export type FeedbackCriticality = (typeof FEEDBACK_CRITICALITIES)[number];
+
 // Workflow statuses (4 columns of the dev kanban). null = not yet in backlog.
 export const FEEDBACK_STATUSES = [
   "to_do",
@@ -52,13 +57,34 @@ export const loginSchema = z.object({
   password: z.string().min(1).max(128),
 });
 
-export const createFeedbackSchema = z.object({
-  title: z.string().min(3, "Titre min. 3 caractères").max(120),
-  description: z.string().min(10, "Description min. 10 caractères").max(5000),
-  type: z.enum(FEEDBACK_TYPES),
-});
+// V6: criticality is conditionally required — only when type === "bug".
+// Refine catches the cross-field rule so the API returns a clear
+// "Criticité requise pour un bug" instead of a generic validation error.
+export const createFeedbackSchema = z
+  .object({
+    title: z.string().min(3, "Titre min. 3 caractères").max(120),
+    description: z.string().min(10, "Description min. 10 caractères").max(5000),
+    type: z.enum(FEEDBACK_TYPES),
+    criticality: z.enum(FEEDBACK_CRITICALITIES).optional(),
+  })
+  .refine((data) => data.type !== "bug" || data.criticality !== undefined, {
+    message: "Criticité requise pour un bug",
+    path: ["criticality"],
+  });
 
-export const updateFeedbackSchema = createFeedbackSchema.partial();
+export const updateFeedbackSchema = z
+  .object({
+    title: z.string().min(3).max(120),
+    description: z.string().min(10).max(5000),
+    type: z.enum(FEEDBACK_TYPES),
+    criticality: z.enum(FEEDBACK_CRITICALITIES).optional(),
+  })
+  .partial();
+
+// V6: admin-only endpoint to override the criticality of a bug.
+export const criticalityOverrideSchema = z.object({
+  criticality: z.enum(FEEDBACK_CRITICALITIES),
+});
 
 export const statusUpdateSchema = z.object({
   status: z.enum(FEEDBACK_STATUSES),

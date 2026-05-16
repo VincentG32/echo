@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { FeedbackWithCreator } from "@/lib/airtable";
 import { truncate } from "@/lib/format";
+import { CriticalityBadge } from "./CriticalityBadge";
 import { StatusBadge } from "./StatusBadge";
 import { TypeBadge } from "./TypeBadge";
 
@@ -46,6 +47,9 @@ export function FeedbackCard({
           </div>
           <div className="flex items-center gap-2 shrink-0 flex-wrap">
             <TypeBadge type={feedback.type} />
+            {feedback.criticality && (
+              <CriticalityBadge criticality={feedback.criticality} />
+            )}
             {!showHighlight && feedback.status && (
               <StatusBadge status={feedback.status} />
             )}

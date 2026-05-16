@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CriticalityBadge } from "@/components/CriticalityBadge";
 import { MarkSeenOnMount } from "@/components/MarkSeenOnMount";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TypeBadge } from "@/components/TypeBadge";
 import { findVote, getFeedbackById, listComments } from "@/lib/airtable";
 import { getCurrentUser } from "@/lib/auth";
 import { formatDate } from "@/lib/format";
+import { AdminCriticalityOverride } from "./AdminCriticalityOverride";
 import { CommentForm } from "./CommentForm";
 import { FeedbackActions } from "./FeedbackActions";
 
@@ -63,6 +65,14 @@ export default async function FeedbackDetailPage({ params }: PageProps) {
               <StatusBadge status={feedback.status} />
             </div>
           )}
+          {feedback.criticality && (
+            <div>
+              <div className="text-[11px] uppercase text-text-tertiary mb-1">
+                Criticité
+              </div>
+              <CriticalityBadge criticality={feedback.criticality} />
+            </div>
+          )}
           <div>
             <div className="text-[11px] uppercase text-text-tertiary mb-1">
               Créé par
@@ -116,6 +126,15 @@ export default async function FeedbackDetailPage({ params }: PageProps) {
           initialDescription={feedback.description}
           initialType={feedback.type}
         />
+
+        {isAdmin && feedback.type === "bug" && feedback.criticality && (
+          <div className="mt-6">
+            <AdminCriticalityOverride
+              feedbackId={feedback.id}
+              initialCriticality={feedback.criticality}
+            />
+          </div>
+        )}
 
         <p className="text-[11px] text-text-tertiary text-center mt-6">
           Modifier/Supprimer visibles si Creator = Current User

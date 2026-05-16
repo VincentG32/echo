@@ -34,6 +34,14 @@
   --color-type-amelioration-bg: #e1f5ee;
   --color-type-amelioration-text: #0f6e56;
 
+  /* Badges Criticité (V6) */
+  --color-crit-bloquant-bg: #fee2e2;
+  --color-crit-bloquant-text: #991b1b;
+  --color-crit-majeur-bg: #fff7ed;
+  --color-crit-majeur-text: #9a3412;
+  --color-crit-mineur-bg: #eff6ff;
+  --color-crit-mineur-text: #1e40af;
+
   /* Highlight (used on creator's own feedback when status changed) */
   --color-highlight-bg: #fef9c3;
   --color-highlight-border: #fcd34d;
@@ -82,6 +90,13 @@
   --color-type-idee-text: #b6abff;
   --color-type-amelioration-bg: #1c3a2c;
   --color-type-amelioration-text: #5fdba1;
+
+  --color-crit-bloquant-bg: #3a1416;
+  --color-crit-bloquant-text: #ff8b8b;
+  --color-crit-majeur-bg: #3a2410;
+  --color-crit-majeur-text: #ffb273;
+  --color-crit-mineur-bg: #0e2348;
+  --color-crit-mineur-text: #93c5fd;
 
   --color-highlight-bg: #2d2410;
   --color-highlight-border: #a16207;

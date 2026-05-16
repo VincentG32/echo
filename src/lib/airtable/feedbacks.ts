@@ -1,6 +1,10 @@
 import { unstable_cache } from "next/cache";
 import { AIRTABLE_PAGE_SIZE } from "../config";
-import type { FeedbackStatus, FeedbackType } from "../schemas";
+import type {
+  FeedbackCriticality,
+  FeedbackStatus,
+  FeedbackType,
+} from "../schemas";
 import {
   type AirtableRecord,
   type FieldSet,
@@ -25,6 +29,9 @@ export type FeedbackRecord = {
   createdAt: string;
   status: FeedbackStatus | null;
   assignedToId: string | null;
+  // V6: criticality — set at creation for bugs, null for idée/amélioration.
+  // Admin can override (up or down) via PATCH /api/feedbacks/[id]/criticality.
+  criticality: FeedbackCriticality | null;
 };
 
 export type FeedbackWithCreator = FeedbackRecord & {
@@ -46,6 +53,7 @@ export function mapFeedback(r: AirtableRecord): FeedbackRecord {
     createdAt: String(f.CreatedAt ?? ""),
     status: (f.Status as FeedbackStatus | undefined) ?? null,
     assignedToId: assignedIds[0] ?? null,
+    criticality: (f.Criticality as FeedbackCriticality | undefined) ?? null,
   };
 }
 
@@ -100,32 +108,49 @@ export async function createFeedback(input: {
   description: string;
   type: FeedbackType;
   creatorId: string;
+  criticality?: FeedbackCriticality;
 }): Promise<FeedbackRecord> {
-  const created = await feedbacksTable.create([
-    {
-      fields: {
-        Title: input.title,
-        Description: input.description,
-        Type: input.type,
-        VoteCount: 0,
-        Creator: [input.creatorId],
-        CreatedAt: nowIso(),
-      },
-    },
-  ]);
+  const fields: Partial<FieldSet> = {
+    Title: input.title,
+    Description: input.description,
+    Type: input.type,
+    VoteCount: 0,
+    Creator: [input.creatorId],
+    CreatedAt: nowIso(),
+  };
+  if (input.criticality) fields.Criticality = input.criticality;
+  const created = await feedbacksTable.create([{ fields }]);
   return mapFeedback(created[0]);
 }
 
 export async function updateFeedback(
   id: string,
-  input: Partial<{ title: string; description: string; type: FeedbackType }>,
+  input: Partial<{
+    title: string;
+    description: string;
+    type: FeedbackType;
+    criticality: FeedbackCriticality;
+  }>,
 ): Promise<FeedbackRecord> {
   const fields: Partial<FieldSet> = {};
   if (input.title !== undefined) fields.Title = input.title;
   if (input.description !== undefined) fields.Description = input.description;
   if (input.type !== undefined) fields.Type = input.type;
+  if (input.criticality !== undefined) fields.Criticality = input.criticality;
 
   const updated = await feedbacksTable.update([{ id, fields }]);
+  return mapFeedback(updated[0]);
+}
+
+// V6: admin override on criticality — separate from updateFeedback because
+// it's gated on role=admin, not on creatorId match.
+export async function setCriticality(
+  id: string,
+  criticality: FeedbackCriticality,
+): Promise<FeedbackRecord> {
+  const updated = await feedbacksTable.update([
+    { id, fields: { Criticality: criticality } },
+  ]);
   return mapFeedback(updated[0]);
 }
 

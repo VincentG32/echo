@@ -27,6 +27,7 @@ export {
   listFeedbacks,
   removeFromBacklog,
   sendToBacklog,
+  setCriticality,
   setFeedbackStatus,
   updateFeedback,
 } from "./airtable/feedbacks";
