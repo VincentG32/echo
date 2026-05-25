@@ -326,6 +326,7 @@ Seed data utilisée pour les démos et les tests E2E. Tous marqués `EmailVerifi
 | Email | Role | Usage |
 |---|---|---|
 | `alice@test.com` | admin | Compte admin principal — accès au dashboard `/admin` (vue d'ensemble + liste/modération) |
+| `demo-admin@pulse.app` | admin | **Compte admin partageable pour les démos live** — mdp dans `scripts/create-admin.mjs` |
 | `bob@test.com` | user | Compte user générique pour vérifier les permissions cross-user |
 | `prodtest@example.com` | user | Compte de test "réaliste" (domaine externe) |
 | `vgranouillit.pro@gmail.com` | user | Compte propriétaire |
