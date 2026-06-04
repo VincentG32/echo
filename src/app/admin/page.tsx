@@ -2,35 +2,24 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { AdminList } from "./AdminList";
-import { AdminOverview } from "./AdminOverview";
-import { type AdminTab, AdminTabs } from "./AdminTabs";
 
+// Pulse Capsule V1: la vue d'ensemble (KPIs, charts, top votes, top
+// bloquants) est sortie de l'app — elle vit dans une interface Airtable
+// dédiée. /admin pointe maintenant directement sur la liste de
+// modération des feedbacks.
 export const dynamic = "force-dynamic";
 
-type PageProps = {
-  searchParams: Promise<{ tab?: string }>;
-};
-
-export default async function AdminPage({ searchParams }: PageProps) {
+export default async function AdminPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login?redirect=/admin");
   if (user.role !== "admin") redirect("/feedbacks");
-
-  const { tab } = await searchParams;
-  // Anything other than the explicit "list" value falls back to the
-  // default overview tab — keeps /admin clean and shareable.
-  const active: AdminTab = tab === "list" ? "list" : "overview";
 
   return (
     <div className="max-w-6xl mx-auto">
       <div className="bg-bg-primary border border-border-tertiary rounded-lg p-5 sm:p-8">
         <div className="flex items-center justify-between mb-1 flex-wrap gap-3">
-          <h1 className="text-lg font-semibold text-text-primary">
-            Dashboard Admin
-          </h1>
+          <h1 className="text-lg font-semibold text-text-primary">Admin</h1>
           <div className="flex items-center gap-4 text-xs text-text-secondary">
-            {/* V6: CSV export — plain <a download> so the browser handles
-                the file save, no client JS needed. */}
             <a
               href="/api/admin/export"
               download
@@ -44,14 +33,10 @@ export default async function AdminPage({ searchParams }: PageProps) {
           </div>
         </div>
         <p className="text-xs text-text-tertiary mb-5">
-          {active === "overview"
-            ? "Vue d'ensemble de l'activité Pulse"
-            : "Modérer les feedbacks et envoyer au backlog"}
+          Modérer les feedbacks et envoyer au backlog
         </p>
 
-        <AdminTabs active={active} />
-
-        {active === "overview" ? <AdminOverview /> : <AdminList />}
+        <AdminList />
       </div>
     </div>
   );
