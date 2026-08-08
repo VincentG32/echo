@@ -12,6 +12,10 @@ test.describe("Permissions (server-side enforcement)", () => {
         title: uniqueTitle("Permission test"),
         description: "Created by Bob, will be attacked by Sarah.",
         type: "bug",
+        // Gate 0 (M6): criticité désormais obligatoire côté serveur pour
+        // un bug (createFeedbackSchema.refine) — sans elle, cette requête
+        // renvoyait 400 et `feedback` était undefined plus bas.
+        criticality: "mineur",
       },
     });
     const { feedback } = await create.json();

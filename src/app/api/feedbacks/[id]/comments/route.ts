@@ -17,7 +17,18 @@ export async function GET(_request: Request, context: RouteContext) {
   const auth = await requireAuth();
   if (auth.error) return auth.error;
 
+  // Gate 0 (M1): valider l'existence du feedback avant de lister — aligne
+  // cette route sur les autres (id vérifié par Airtable, soft delete
+  // respecté : un feedback supprimé ne livre plus ses commentaires).
   const { id } = await context.params;
+  const feedback = await getFeedbackById(id);
+  if (!feedback) {
+    return NextResponse.json(
+      { error: "Feedback introuvable" },
+      { status: 404 },
+    );
+  }
+
   const comments = await listComments(id);
   return NextResponse.json({ comments });
 }

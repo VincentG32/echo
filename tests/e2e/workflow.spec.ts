@@ -71,6 +71,8 @@ test.describe("Backlog → kanban workflow", () => {
         description:
           "Lea tries to take this without admin sending to backlog first.",
         type: "bug",
+        // Gate 0 (M6): criticité obligatoire côté serveur pour un bug.
+        criticality: "mineur",
       },
     });
     const { feedback } = await create.json();

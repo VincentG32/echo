@@ -662,8 +662,8 @@ Organisée par effort × impact. Les tiers sont indépendants — vous pouvez pi
 
 1. **Cohérence éventuelle sur `VoteCount`** — les 2 requêtes Airtable (`createVote` + `incrementVoteCount`) ne sont pas atomiques. Si la 2ᵉ échoue après la 1ʳᵉ, le compteur diverge. Acceptable au volume actuel (~10 utilisateurs), à durcir avec une vraie DB transactionnelle.
 2. **Token JWT non révocable** — un cookie compromis reste valide jusqu'à expiration (7 jours). V3 : sessions DB ou tokens courts + refresh.
-3. **Pas de password reset / email verification** — un user peut s'inscrire avec un email non vérifié. Pas critique pour un outil interne, à fixer avant un vrai déploiement multi-équipes.
-4. **Aucun test automatisé** — validation 100% manuelle. Pas de CI. Premier truc à ajouter en V3.
+3. ~~Pas de password reset / email verification~~ — **livré depuis V2** (voir §Fonctionnalités) : vérification d'email à l'inscription et reset password par token expirant sont en place.
+4. ~~Aucun test automatisé~~ — **livré depuis V2/V6** : 14 tests E2E Playwright + CI GitHub Actions (typecheck/lint/build sur chaque push, a11y systématique, suite E2E complète gated derrière `E2E_ENABLED`). Limite réelle actuelle : la suite E2E ne tourne pas par défaut en CI (variable désactivée) — voir §Tests E2E en CI.
 5. **Performance Airtable** — 5 req/s par base. La page liste fait 2 requêtes (feedbacks + users batch). Tient jusqu'à ~50 utilisateurs simultanés grand max.
 6. **Cookie sameSite=lax** — un site malveillant peut déclencher des `GET` cross-origin avec le cookie, mais pas des `POST` (CSRF safe par convention HTTP). Suffisant pour cette V1.
 7. **Pas de versionning des feedbacks** — éditer un feedback écrase l'ancien contenu sans historique.

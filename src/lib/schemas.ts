@@ -72,6 +72,13 @@ export const createFeedbackSchema = z
     path: ["criticality"],
   });
 
+// Gate 0 (M4): le .partial() seul laissait passer type:"bug" sans
+// criticality — un créateur pouvait éditer une "idée" en "bug" et
+// contourner la règle V6 (obligatoire à la création). Le refine
+// ci-dessous ne bloque QUE le cas où `type` devient "bug" dans cette
+// requête sans que `criticality` soit fournie dans la même requête ou
+// déjà présente sur l'enregistrement — voir updateFeedback() qui passe
+// la criticité existante avant validation.
 export const updateFeedbackSchema = z
   .object({
     title: z.string().min(3).max(120),
@@ -79,7 +86,15 @@ export const updateFeedbackSchema = z
     type: z.enum(FEEDBACK_TYPES),
     criticality: z.enum(FEEDBACK_CRITICALITIES).optional(),
   })
-  .partial();
+  .partial()
+  .refine(
+    (data) =>
+      data.type !== "bug" || data.criticality !== undefined,
+    {
+      message: "Criticité requise pour un bug",
+      path: ["criticality"],
+    },
+  );
 
 // V6: admin-only endpoint to override the criticality of a bug.
 export const criticalityOverrideSchema = z.object({

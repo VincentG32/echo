@@ -15,13 +15,24 @@ export default function SignupPage() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    const res = await mutate(
+    const res = await mutate<{ user?: { id: string } }>(
       "/api/auth/signup",
       { method: "POST", json: { email, password, name } },
       { toastError: false, refresh: false, errorMessage: "Erreur d'inscription" },
     );
     if (!res.ok) {
       setError(res.error);
+      return;
+    }
+    // Gate 0 (M2): la réponse est désormais identique que l'email soit déjà
+    // pris ou non (anti-énumération). Seule la présence de `user` signale
+    // qu'un compte vient réellement d'être créé (et le cookie posé) — sinon
+    // on affiche le même message neutre que renvoie l'API, sans rediriger
+    // vers un espace connecté auquel l'appelant n'a pas droit.
+    if (!res.data.user) {
+      toast.success(
+        "Si cette adresse n'est pas déjà utilisée, un email de vérification vient de vous être envoyé.",
+      );
       return;
     }
     toast.success("Bienvenue sur Pulse !");

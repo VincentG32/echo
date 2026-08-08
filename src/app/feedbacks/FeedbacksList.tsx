@@ -101,7 +101,7 @@ export function FeedbacksList({
       )}
 
       <p className="text-xs text-text-tertiary text-center mt-6">
-        Triée par nombre de votes (descending)
+        Triés du plus au moins voté
       </p>
     </div>
   );

@@ -21,3 +21,10 @@ export type { FieldSet };
 export function nowIso(): string {
   return new Date().toISOString();
 }
+
+// Gate 0 (M1): escapes a value interpolated inside a single-quoted
+// Airtable filterByFormula string. Prevents formula injection via user
+// input (same pattern as getUserByEmail). Backslashes first, then quotes.
+export function escapeFormulaValue(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}

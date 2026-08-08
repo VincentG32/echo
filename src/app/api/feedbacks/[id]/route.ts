@@ -5,7 +5,7 @@ import {
   getFeedbackById,
   updateFeedback,
 } from "@/lib/airtable";
-import { parseJsonBody, requireAuth } from "@/lib/api-helpers";
+import { requireAuth } from "@/lib/api-helpers";
 import { updateFeedbackSchema } from "@/lib/schemas";
 
 type RouteContext = {
@@ -39,8 +39,31 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Action refusée" }, { status: 403 });
   }
 
-  const parsed = await parseJsonBody(request, updateFeedbackSchema);
-  if (parsed.error) return parsed.error;
+  // Gate 0 (M4): le formulaire d'édition n'envoie jamais `criticality`
+  // (pas de champ dédié). Sans ce merge, updateFeedbackSchema rejetterait
+  // désormais toute édition d'un bug déjà classé (type:"bug" +
+  // criticality absente = refusé). On complète avec la criticité actuelle
+  // AVANT validation, pour que la règle V6 ("un bug a toujours une
+  // criticité") s'applique aussi bien à la création qu'à l'édition, sans
+  // gêner l'édition normale d'un bug déjà classé.
+  let raw: unknown;
+  try {
+    raw = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+  const withFallbackCriticality =
+    raw && typeof raw === "object" && !("criticality" in raw) && feedback.criticality
+      ? { ...raw, criticality: feedback.criticality }
+      : raw;
+
+  const parsed = updateFeedbackSchema.safeParse(withFallbackCriticality);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Criticité requise pour un bug" },
+      { status: 400 },
+    );
+  }
 
   const updated = await updateFeedback(id, parsed.data);
   revalidateTag("feedbacks", "max");

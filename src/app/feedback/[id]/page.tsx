@@ -137,7 +137,7 @@ export default async function FeedbackDetailPage({ params }: PageProps) {
         )}
 
         <p className="text-[11px] text-text-tertiary text-center mt-6">
-          Modifier/Supprimer visibles si Creator = Current User
+          Modifier et supprimer sont réservés à l&apos;auteur du feedback
         </p>
       </div>
 

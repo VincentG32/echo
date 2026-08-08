@@ -215,7 +215,7 @@ export default function SubmitPage() {
         </button>
 
         <p className="text-xs text-text-tertiary text-center mt-4">
-          Creator et CreatedDate renseignés automatiquement
+          Le feedback sera associé à ton compte, avec la date du jour
         </p>
       </form>
     </div>

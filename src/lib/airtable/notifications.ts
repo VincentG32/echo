@@ -60,7 +60,14 @@ export async function listNotifications(
     })
     .all();
   const feedbacks = feedbackRecords.map(mapFeedback);
-  const enriched = await enrichWithUsers(feedbacks);
+  // Gate 0 (M5): contrairement à listFeedbacks/listBacklogFeedbacks/
+  // getFeedbackById, cette lecture ne filtrait pas les feedbacks
+  // soft-deleted (DeletedAt) — une notification pouvait exposer le
+  // titre/description d'un feedback supprimé, avec un lien menant à un
+  // 404. On applique ici le même invariant que partout ailleurs.
+  const enriched = await enrichWithUsers(
+    feedbacks.filter((f) => !f.deletedAt),
+  );
   const byId = new Map(enriched.map((f) => [f.id, f]));
 
   return notifs.map((n) => ({

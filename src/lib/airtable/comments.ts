@@ -1,5 +1,10 @@
 import { AIRTABLE_PAGE_SIZE } from "../config";
-import { type AirtableRecord, commentsTable, nowIso } from "./client";
+import {
+  type AirtableRecord,
+  commentsTable,
+  escapeFormulaValue,
+  nowIso,
+} from "./client";
 import { getUsersByIds } from "./users";
 
 export type CommentRecord = {
@@ -30,9 +35,11 @@ function mapComment(r: AirtableRecord): CommentRecord {
 export async function listComments(
   feedbackId: string,
 ): Promise<CommentWithAuthor[]> {
+  // Gate 0 (M1): l'id vient de l'URL — échappé pour empêcher l'injection
+  // de formule (`' OR '1'='1` renvoyait tous les commentaires de la base).
   const records = await commentsTable
     .select({
-      filterByFormula: `{FeedbackId} = '${feedbackId}'`,
+      filterByFormula: `{FeedbackId} = '${escapeFormulaValue(feedbackId)}'`,
       sort: [{ field: "CreatedAt", direction: "asc" }],
       pageSize: AIRTABLE_PAGE_SIZE,
     })

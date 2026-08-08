@@ -23,15 +23,26 @@ export async function POST(request: Request) {
 
   const { email, password, name } = parsed.data;
   const existing = await getUserByEmail(email);
+
+  // Gate 0 (M2): l'ancienne version renvoyait un 400 dédié si l'email
+  // existait déjà et un 200 avec l'utilisateur sinon — les deux réponses
+  // étaient structurellement distinctes, ce qui permettait de deviner
+  // l'existence d'un compte (énumération d'emails). On renvoie maintenant
+  // la MÊME forme de réponse dans les deux cas ; si le compte existe déjà,
+  // on ne crée rien et on avertit son propriétaire par email plutôt que
+  // l'appelant.
   if (existing) {
-    // I-1: neutral message + 400 to avoid email enumeration via signup
-    return NextResponse.json(
-      {
-        error:
-          "Impossible de créer le compte. Si vous avez déjà un compte, essayez de vous connecter.",
-      },
-      { status: 400 },
-    );
+    await sendEmail({
+      to: existing.email,
+      subject: "Tentative de création de compte Pulse",
+      html: `<p>Quelqu'un a tenté de créer un compte Pulse avec cette adresse, qui possède déjà un compte. Si ce n'était pas vous, ignorez cet email. Sinon, connectez-vous normalement ou utilisez « mot de passe oublié ».</p>`,
+      devLogContext: `signup collision for ${existing.email}`,
+    });
+    return NextResponse.json({
+      ok: true,
+      message:
+        "Si cette adresse n'est pas déjà utilisée, un email de vérification vient de vous être envoyé.",
+    });
   }
 
   const passwordHash = await hashPassword(password);
@@ -62,6 +73,7 @@ export async function POST(request: Request) {
   revalidatePath("/", "layout");
 
   return NextResponse.json({
+    ok: true,
     user: { id: user.id, email: user.email, name: user.name, role: user.role },
   });
 }

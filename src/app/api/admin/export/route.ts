@@ -7,9 +7,17 @@ import { requireAuth } from "@/lib/api-helpers";
 // rows. RFC 4180-ish escaping (double quotes around cells containing
 // commas/quotes/newlines, internal quotes doubled).
 
+// Gate 0 (M3): a cell whose first character is =, +, -, @, tab or CR is
+// interpreted as a formula by Excel/Sheets on open ("formula injection").
+// A feedback title crafted as `=HYPERLINK(...)` would execute for the
+// admin opening this export. Prefix with a single quote to force
+// text interpretation — standard OWASP CSV injection mitigation.
+const FORMULA_TRIGGER = /^[=+\-@\t\r]/;
+
 function csvCell(value: unknown): string {
   if (value === null || value === undefined) return "";
-  const s = String(value);
+  let s = String(value);
+  if (FORMULA_TRIGGER.test(s)) s = `'${s}`;
   if (/[",\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
   return s;
 }

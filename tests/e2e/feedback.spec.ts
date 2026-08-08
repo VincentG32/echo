@@ -12,6 +12,11 @@ test.describe("Feedback CRUD + voting", () => {
       .getByLabel(/description/i)
       .fill("Description suffisamment longue pour passer la validation Zod");
     await page.getByLabel(/type/i).selectOption("bug");
+    // Gate 0 (M6): depuis V6, un bug exige une criticité (radio buttons
+    // affichés dynamiquement) — sans ce clic, le client bloque la
+    // soumission ("Choisis une criticité pour ce bug") et waitForURL
+    // ci-dessous expirait.
+    await page.getByRole("radio", { name: /mineur/i }).check();
     await page.getByRole("button", { name: /soumettre le feedback/i }).click();
 
     await page.waitForURL(/\/feedbacks/);
