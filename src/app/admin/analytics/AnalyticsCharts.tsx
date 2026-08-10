@@ -69,7 +69,7 @@ export function AnalyticsCharts({ typeCounts, statusCounts }: Props) {
                   fontSize: "12px",
                 }}
               />
-              <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+              <Bar dataKey="value" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                 {typeCounts.map((d) => (
                   <Cell key={d.name} fill={TYPE_COLORS[d.name] ?? "#6b7280"} />
                 ))}
@@ -112,7 +112,7 @@ export function AnalyticsCharts({ typeCounts, statusCounts }: Props) {
                   fontSize: "12px",
                 }}
               />
-              <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+              <Bar dataKey="value" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                 {statusCounts.map((d) => (
                   <Cell key={d.name} fill={STATUS_COLORS[d.name] ?? "#6b7280"} />
                 ))}

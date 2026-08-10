@@ -1,7 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
+import { CompagnonWidget } from "@/components/CompagnonWidget";
 import {
   FEEDBACK_CRITICALITIES,
   FEEDBACK_TYPES,
@@ -40,10 +41,23 @@ const CRITICALITY_DEFINITIONS: Record<
 };
 
 export default function SubmitPage() {
+  return (
+    <Suspense fallback={null}>
+      <SubmitForm />
+    </Suspense>
+  );
+}
+
+// Phase 3 (cahier de test) : /campagne pré-remplit title/description via
+// query params pour relier un feedback à un scénario de test précis.
+function SubmitForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { mutate, pending } = useApiMutation();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [title, setTitle] = useState(searchParams.get("title") ?? "");
+  const [description, setDescription] = useState(
+    searchParams.get("description") ?? "",
+  );
   const [type, setType] = useState<FeedbackType | "">("");
   const [criticality, setCriticality] = useState<FeedbackCriticality | "">("");
   const [error, setError] = useState<string | null>(null);
@@ -218,6 +232,7 @@ export default function SubmitPage() {
           Le feedback sera associé à ton compte, avec la date du jour
         </p>
       </form>
+      <CompagnonWidget />
     </div>
   );
 }

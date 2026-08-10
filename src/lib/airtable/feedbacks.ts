@@ -157,13 +157,18 @@ export async function updateFeedback(
 
 // V6: admin override on criticality — separate from updateFeedback because
 // it's gated on role=admin, not on creatorId match.
+// Phase 2 (auto-classification IA) : pose CriticalityLockedByAdmin pour que
+// le workflow n8n de classification ne touche plus jamais à la criticité
+// d'un feedback une fois qu'un admin l'a fixée manuellement.
 export async function setCriticality(
   id: string,
   criticality: FeedbackCriticality,
 ): Promise<FeedbackRecord> {
-  const updated = await feedbacksTable.update([
-    { id, fields: { Criticality: criticality } },
-  ]);
+  const fields = {
+    Criticality: criticality,
+    CriticalityLockedByAdmin: true,
+  } as unknown as Partial<FieldSet>;
+  const updated = await feedbacksTable.update([{ id, fields }]);
   return mapFeedback(updated[0]);
 }
 

@@ -14,6 +14,7 @@ export const feedbacksTable = base("Feedbacks");
 export const votesTable = base("Votes");
 export const notificationsTable = base("Notifications");
 export const commentsTable = base("Comments");
+export const cahierTestsTable = base("CahierTests");
 
 export type AirtableRecord = Records<FieldSet>[number];
 export type { FieldSet };

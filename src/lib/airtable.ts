@@ -48,3 +48,6 @@ export {
 
 export type { CommentRecord, CommentWithAuthor } from "./airtable/comments";
 export { createComment, listComments } from "./airtable/comments";
+
+export type { CahierTestItem } from "./airtable/cahierTests";
+export { ACTIVE_CAMPAIGN, listActiveCahierTests } from "./airtable/cahierTests";

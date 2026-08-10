@@ -124,7 +124,16 @@ export const resetPasswordSchema = z.object({
     .max(128, "Mot de passe max. 128 caractères"),
 });
 
+// Phase 4 (Compagnon de test) : message envoyé au widget de chat.
+// L'identité/rôle ne transitent jamais par ce schéma — ils sont injectés
+// côté serveur depuis la session, jamais depuis le corps de la requête.
+export const compagnonMessageSchema = z.object({
+  message: z.string().min(1, "Message vide").max(2000),
+  sessionId: z.string().min(1).max(200),
+});
+
 export type SignupInput = z.infer<typeof signupSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type CreateFeedbackInput = z.infer<typeof createFeedbackSchema>;
 export type UpdateFeedbackInput = z.infer<typeof updateFeedbackSchema>;
+export type CompagnonMessageInput = z.infer<typeof compagnonMessageSchema>;
