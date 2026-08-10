@@ -667,6 +667,7 @@ Organisée par effort × impact. Les tiers sont indépendants — vous pouvez pi
 5. **Performance Airtable** — 5 req/s par base. La page liste fait 2 requêtes (feedbacks + users batch). Tient jusqu'à ~50 utilisateurs simultanés grand max.
 6. **Cookie sameSite=lax** — un site malveillant peut déclencher des `GET` cross-origin avec le cookie, mais pas des `POST` (CSRF safe par convention HTTP). Suffisant pour cette V1.
 7. **Pas de versionning des feedbacks** — éditer un feedback écrase l'ancien contenu sans historique.
+8. **Anti-doublon non automatique sur "Soumettre"** — le Compagnon de test (widget de chat, cf. §Automatisations n8n) sait détecter un feedback similaire déjà existant et propose de voter pour lui plutôt que d'en créer un nouveau (outil RAG `recherche_doublons`), mais ce n'est déclenché que si le testeur ouvre le chat et décrit son problème *avant* de remplir le formulaire. Le bouton "Soumettre le feedback" (accessible depuis `/submit`, `/campagne` et "+ Nouveau" sur `/feedbacks` — un seul et même formulaire) ne fait aucune vérification lui-même : deux testeurs qui ne passent pas par le chat peuvent créer deux feedbacks distincts pour le même bug. Choix de scope assumé (MVP) plutôt que bug : automatiser la vérification au clic sur "Soumettre" est identifié comme amélioration V2 (Tier 2), mais ajoute un appel réseau bloquant sur le chemin de soumission et un nouveau cas à couvrir dans le jeu de test — mis en balance avec le fait que le mécanisme RAG est déjà démontré et fonctionnel via le chat.
 
 ---
 

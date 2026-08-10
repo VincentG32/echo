@@ -44,18 +44,18 @@ export default async function HomePage() {
       <section className="grid sm:grid-cols-3 gap-4 mb-12">
         <FeatureCard
           emoji="📝"
-          title="Soumettez du feedback"
-          body="Bugs, idées, améliorations. Un titre, une description, un type — c'est tout."
+          title="Partagez votre feedback"
+          body="Bugs, idées, améliorations : trois champs suffisent, et votre remarque part directement vers l'équipe qui décide."
         />
         <FeatureCard
           emoji="👍"
-          title="Votez ce qui compte"
-          body="Un vote par utilisateur et par feedback. Pas de spam, pas de noise."
+          title="Votre vote compte"
+          body="Un vote par feedback, pour dire ce qui doit avancer. Votre avis façonne les priorités de l'équipe."
         />
         <FeatureCard
           emoji="🎯"
-          title="Priorisez sans deviner"
-          body="La liste se trie automatiquement par nombre de votes. Le top, c'est ce qu'attend l'équipe."
+          title="Voyez ce qui avance"
+          body="La liste se trie automatiquement par nombre de votes : vous savez en direct ce que l'équipe soutient le plus."
         />
       </section>
 
