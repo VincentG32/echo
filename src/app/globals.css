@@ -3,7 +3,13 @@
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
 
+/* Couleurs et radii dans un bloc @theme separe (sans "inline") : les
+   utilitaires Tailwind generes ici referencent la variable CSS au lieu
+   de figer la valeur claire, ce qui permet a [data-theme="dark"]
+   ci-dessous de reellement s'appliquer sur les classes bg- et text-. */
+@theme {
   /* Surfaces — neutres gris-blanc, le brand vit sur les CTA */
   --color-bg-primary: #ffffff;
   --color-bg-secondary: #f7f7f5;
