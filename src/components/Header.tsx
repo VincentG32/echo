@@ -27,14 +27,6 @@ export async function Header() {
           )}
           {user && (
             <Link
-              href="/submit"
-              className="text-text-secondary hover:text-text-primary transition-colors"
-            >
-              Soumettre
-            </Link>
-          )}
-          {user && (
-            <Link
               href="/campagne"
               className="text-text-secondary hover:text-text-primary transition-colors"
             >

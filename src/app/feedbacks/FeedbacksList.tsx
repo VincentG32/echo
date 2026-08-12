@@ -48,7 +48,7 @@ export function FeedbacksList({
           href="/submit"
           className="rounded-md bg-action text-text-info px-3 py-1.5 text-sm font-medium hover:bg-action-hover transition-colors"
         >
-          + Nouveau
+          + Nouveau feedback
         </Link>
       </div>
 
