@@ -6,7 +6,7 @@
 🌐 **Live** → [pulse-one-brown.vercel.app](https://pulse-one-brown.vercel.app)
 📦 **Repo** → [github.com/VincentG32/pulse](https://github.com/VincentG32/pulse)
 
-Stack : **Next.js 16** (App Router) · **TypeScript** · **Tailwind v4** · **Airtable** · **Auth JWT custom** · **Vercel**
+Stack : **Next.js 16** (App Router) · **TypeScript** · **Tailwind v4** · **Airtable** · **n8n** · **Qdrant** · **Claude (Anthropic)** · **Auth JWT custom** · **Vercel**
 
 ---
 
@@ -20,11 +20,12 @@ Stack : **Next.js 16** (App Router) · **TypeScript** · **Tailwind v4** · **Ai
 7. [Setup local](#setup-local)
 8. [Schéma Airtable](#schéma-airtable)
 9. [Automatisations Airtable](#automatisations-airtable)
-10. [Structure du code](#structure-du-code)
-11. [Décisions techniques (mini-ADRs)](#décisions-techniques-mini-adrs)
-12. [Roadmap V2 / V3](#roadmap-v2--v3)
-13. [Limitations connues](#limitations-connues)
-14. [Crédits](#crédits)
+10. [Automatisations n8n](#automatisations-n8n)
+11. [Structure du code](#structure-du-code)
+12. [Décisions techniques (mini-ADRs)](#décisions-techniques-mini-adrs)
+13. [Roadmap V2 / V3](#roadmap-v2--v3)
+14. [Limitations connues](#limitations-connues)
+15. [Crédits](#crédits)
 
 ---
 
@@ -43,7 +44,7 @@ Pulse résout ça avec un périmètre volontairement minimaliste :
 - **Tri émergent** par nombre de votes : le top, c'est ce que l'équipe attend vraiment
 - **Un dashboard admin** pour modérer
 
-Pas de plugin, pas d'IA, pas d'intégration Slack. Juste l'essentiel pour arrêter de deviner.
+Pas de plugin tiers exposé aux utilisateurs, pas d'intégration Slack. L'IA reste un outil interne (classification, agent d'aide au test, contrôle qualité), jamais une dépendance de la boucle principale de feedback/vote/priorisation.
 
 ---
 
@@ -73,7 +74,7 @@ Pas de plugin, pas d'IA, pas d'intégration Slack. Juste l'essentiel pour arrêt
 - `/login`, `/signup`
 - `/feedbacks` — liste publique aux users connectés
 - `/feedback/[id]` — détail avec actions (voter / éditer / supprimer)
-- `/submit` — formulaire de création
+- `/submit` — formulaire de création (accessible via "+ Nouveau feedback" sur `/feedbacks` ou depuis `/campagne`, plus de lien direct dans le menu — voir V7)
 - `/admin` — dashboard admin (suppression universelle)
 
 **Sécurité**
@@ -99,7 +100,7 @@ Pas de plugin, pas d'IA, pas d'intégration Slack. Juste l'essentiel pour arrêt
 - **Auth durcie** — email verification (token 24h, gate optionnel via env), password reset (token 1h), tous via Resend (gracieusement dégradé sans clé d'API)
 - **Rate limiting** — Upstash Redis sliding window sur `/api/auth/login` (5/min), `/api/auth/signup` (3/min), `/api/feedbacks/[id]/vote` (20/min)
 - **Observabilité** — Sentry (erreurs prod) + Vercel Analytics (Web Vitals)
-- **Dark mode** — toggle manuel persistant + détection auto `prefers-color-scheme`, tokens CSS isolés via `@theme inline`
+- **Dark mode** — toggle manuel persistant + détection auto `prefers-color-scheme`, tokens CSS isolés par thème via `[data-theme="dark"]`
 - **Qualité** — 10 tests E2E Playwright + GitHub Actions CI (typecheck + lint + build à chaque PR), audit code interne (sécurité + architecture + performance + accessibilité) avec correctifs documentés
 - **Accessibilité WCAG 2.1 AA** — audit interne passé, focus visible global, skip-link, contrast AA, `role="alert"` sur erreurs, `prefers-reduced-motion` respecté (cf. [Accessibilité](#accessibilité))
 
@@ -117,6 +118,15 @@ Pas de plugin, pas d'IA, pas d'intégration Slack. Juste l'essentiel pour arrêt
 - **a11y CI automatisé** — job `A11y · axe-core` ajouté à GitHub Actions. À chaque push/PR, axe-core scanne les 4 pages publiques (Landing, Login, Signup, Forgot password) et fail la CI sur toute violation `serious`/`critical`. Sans gate (E2E_ENABLED), car ces pages n'ont pas besoin d'Airtable de test. **A immédiatement attrapé une régression de contraste** (text-tertiary 4.33:1 sur le fond rose du test de palette).
 - **Charte graphique teal** — tokens d'action passés en teal (`#0F766E` light, `#14B8A6` dark) après un détour par le rouge. Choisi pour ne clasher avec aucun des 7 badges sémantiques (bug-rouge, idée-violet, amélioration-vert, criticité bloquant/majeur/mineur). Contraste validé par axe-core sur les 4 pages publiques.
 
+### V7 — Cahier de test, Compagnon de test & IA ✅
+
+- **Cahier de test** — table `CahierTests` (voir [Schéma Airtable](#schéma-airtable)) + page `/campagne` : liste les scénarios de test de la campagne active (`Pulse V1`), groupés par zone, avec un badge de priorité. Chaque item a un lien "Donner un feedback sur ce test" qui pré-remplit `/submit` (titre + description) avec le code du test, le scénario et le résultat attendu.
+- **Compagnon de test** — widget de chat ([`CompagnonWidget`](src/components/CompagnonWidget.tsx)), visible sur `/campagne` et `/submit` une fois connecté. Guide vers le bon scénario du cahier de test actif et détecte les doublons potentiels avant soumission (propose de voter pour un feedback existant plutôt que d'en créer un nouveau). Détail complet, modèles et garde-fous : voir [Automatisations n8n](#automatisations-n8n).
+- **Pipeline de qualité** — jeu de test de 8 cas (table `JeuDeTest`, un par catégorie attendue) rejoué contre l'agent réel, noté par un juge IA sur 3 critères (table `Evaluation`). Baseline : **4.96/5** (Pertinence 4.88, Sécurité 5.00, Clarté 5.00) sur 8/8 cas sans erreur.
+- **Correctif dashboard** — les graphiques de `/admin` (répartition par type, backlog par statut) ne s'affichaient plus correctement : l'animation d'entrée des barres (Recharts) ne se résolvait jamais dans certains cas. Corrigé en désactivant l'animation d'entrée sur les deux graphiques.
+- **Correctif mode sombre** — la feuille de style figeait toutes les couleurs à leur valeur claire au moment de la compilation (`@theme inline` appliqué à tort aux couleurs, pas seulement aux polices), ce qui empêchait `[data-theme="dark"]` de s'appliquer sur la quasi-totalité des classes `bg-*`/`text-*`. Corrigé en séparant les couleurs dans leur propre bloc `@theme` (sans `inline`).
+- **Navigation simplifiée** — suppression de l'onglet "Soumettre" du menu (trop de chemins différents pour arriver au même formulaire) ; le bouton "+ Nouveau" de `/feedbacks` est renommé "+ Nouveau feedback" pour être plus explicite.
+
 ---
 
 ## Stack & justifications
@@ -125,13 +135,17 @@ Pas de plugin, pas d'IA, pas d'intégration Slack. Juste l'essentiel pour arrêt
 |---|---|---|
 | Framework | **Next.js 16 App Router** | Server Components pour la liste (pas de `useEffect` de fetch côté client), API routes co-localisées, déploiement Vercel en 1 clic |
 | Langage | **TypeScript strict** | Sécurité de type sur la frontière auth/Airtable où les bugs sont silencieux et coûteux |
-| Styling | **Tailwind CSS v4** | Tokens de design définis en CSS custom properties (`@theme inline` dans `globals.css`). Brand color = teal `#0F766E` (light) / `#14B8A6` (dark), choisi V6 pour ne clasher avec aucun des 7 badges sémantiques (bug/idée/amélioration + criticité bloquant/majeur/mineur) |
+| Styling | **Tailwind CSS v4** | Tokens de design en CSS custom properties, définis dans `globals.css` (couleurs et radii dans un bloc `@theme` classique, polices dans un bloc `@theme inline` séparé — voir [ADR](#décisions-techniques-mini-adrs) sur pourquoi ce n'est pas le même bloc). Brand color = teal `#0F766E` (light) / `#14B8A6` (dark), choisi V6 pour ne clasher avec aucun des 7 badges sémantiques (bug/idée/amélioration + criticité bloquant/majeur/mineur) |
 | Backend | **API Routes Next.js (Node runtime)** | Mêmes types partagés avec le front via `lib/`, pas de serveur Express à maintenir |
 | Base de données | **Airtable** | Plan gratuit suffisant pour un MVP, UI native pour debug, pas de migrations SQL à gérer pendant la formation |
 | Auth | **JWT custom + bcryptjs** | Pédagogique pour une formation : on voit la mécanique (hash, signature, cookie), pas masqué derrière une lib |
 | Validation | **Zod** | Schémas réutilisables côté form ET côté API (single source of truth) |
 | Notifications | **sonner** | Léger, accessible, 0 config |
 | Hébergement | **Vercel** | Déploiement `git push` → live, free tier généreux, Preview URLs par PR |
+| Automatisation & agent IA | **n8n** (VPS personnel) | Orchestration visuelle des workflows (classification, digest, agent) sans redéployer l'app à chaque ajustement de prompt ou de logique |
+| Base vectorielle | **Qdrant** (self-hosted) | Recherche par similarité pour le RAG du Compagnon de test (cahier de test + détection de doublons) ; auto-hébergé pour rester propriétaire de l'infrastructure |
+| Embeddings | **Cohere** (`embed-multilingual-v3.0`) | Multilingue, 1024 dimensions, bon rapport qualité/coût pour un corpus en français |
+| Modèles de langage | **Claude Sonnet** (agent) + **Claude Haiku** (garde-fou, classification, juge) | Le modèle le plus capable réservé au dialogue ; un modèle rapide et économe pour les tâches courtes et répétitives — détail au [Bloc automatisations n8n](#automatisations-n8n) |
 
 ---
 
@@ -143,6 +157,7 @@ Pas de plugin, pas d'IA, pas d'intégration Slack. Juste l'essentiel pour arrêt
 │  pages: /, /login, /signup,  │
 │         /feedbacks, /submit, │
 │         /feedback/[id],      │
+│         /campagne, /dev,     │
 │         /admin               │
 └──────────┬───────────────────┘
            │ fetch + cookie JWT (httpOnly)
@@ -151,21 +166,29 @@ Pas de plugin, pas d'IA, pas d'intégration Slack. Juste l'essentiel pour arrêt
 │  Next.js API routes (server) │  ← AIRTABLE_TOKEN, JWT_SECRET
 │  /api/auth/{signup,login,    │     restent ici, jamais en client
 │            logout}, /api/me, │
-│  /api/feedbacks[/:id][/vote] │
-│                              │
-│  proxy.ts (middleware) :     │
-│  redirige vers /login si     │
-│  pas de cookie               │
-└──────────┬───────────────────┘
-           │ airtable.js SDK
-           ▼
-┌──────────────────────────────┐
-│  Airtable base "Pulse Base"  │
-│  Users · Feedbacks · Votes   │
-└──────────────────────────────┘
+│  /api/feedbacks[/:id][...],  │
+│  /api/admin/export,          │
+│  /api/compagnon ─────────────┼──┐
+│                               │  │ webhook (Basic Auth)
+│  proxy.ts (middleware) :      │  │
+│  redirige vers /login si      │  │
+│  pas de cookie                │  │
+└──────────┬────────────────────┘  │
+           │ airtable.js SDK       │
+           ▼                       ▼
+┌──────────────────────────┐  ┌─────────────────────────────┐
+│  Airtable base "Pro"     │◄─┤  n8n (VPS personnel)         │
+│  Users · Feedbacks ·     │  │  Compagnon de test, garde-   │
+│  Votes · Comments ·      │  │  fou, RAG (Qdrant), digest,  │
+│  Notifications ·         │  │  classification, monitoring  │
+│  CahierTests · Monitoring│  └─────────────────────────────┘
+│  · JeuDeTest · Evaluation│
+└───────────────────────────┘
 ```
 
-**Single source of truth** : `src/lib/airtable.ts` est le **seul** module qui parle à Airtable. Aucun composant React ne connaît la forme des records — ils consomment des types `UserRecord` / `FeedbackWithCreator` / `VoteRecord` propres.
+**Single source de vérité pour les données** : `src/lib/airtable.ts` est un fichier barrel qui ré-exporte les modules `src/lib/airtable/{users,feedbacks,votes,notifications,comments,cahierTests}.ts`. Aucun composant React ne connaît la forme des records — ils consomment des types `UserRecord` / `FeedbackWithCreator` / `VoteRecord` propres.
+
+**n8n ne passe jamais par `lib/airtable.ts`** : les workflows lisent/écrivent Airtable directement (credentials propres, côté n8n). L'app Next.js ne fait qu'appeler le webhook du Compagnon de test via `/api/compagnon` ; elle ne connaît rien du contenu des automatisations. Détail complet : [Automatisations n8n](#automatisations-n8n).
 
 **Server Components par défaut, Client uniquement quand nécessaire.** Les pages liste / détail / admin sont des Server Components qui appellent directement `lib/airtable.ts` côté serveur — pas de hop fetch HTTP inutile. Seuls les composants interactifs (forms, boutons de vote) sont `"use client"`.
 
@@ -173,7 +196,7 @@ Pas de plugin, pas d'IA, pas d'intégration Slack. Juste l'essentiel pour arrêt
 
 ## Modèle de sécurité
 
-Trois couches qui se renforcent. Compromettre une seule ne suffit pas.
+Quatre couches qui se renforcent. Compromettre une seule ne suffit pas.
 
 ### 1. Le token Airtable n'atteint jamais le navigateur
 - Variable d'env `AIRTABLE_TOKEN` lue **côté serveur uniquement** (`process.env`)
@@ -201,6 +224,10 @@ Les vérifications de propriété sont **dans les API routes**, pas dans l'UI :
 
 **Cacher un bouton dans l'UI ne suffit pas** — un `curl` direct contournerait. La vraie barrière est l'API route. L'UI ne fait que masquer ce qui n'est pas actionnable, pour la lisibilité.
 
+### 4. Le webhook du Compagnon de test est authentifié, et ne fait jamais confiance à l'identité déclarée dans le message
+
+Le widget de chat envoie l'identité et le rôle de l'utilisateur à n8n, mais ces deux champs sont **relus côté serveur depuis la session** dans `/api/compagnon` (jamais reconstruits depuis ce que le navigateur envoie). Le webhook n8n lui-même est protégé par Basic Auth (`COMPAGNON_WEBHOOK_USER`/`_PASS`) — sans ce verrou, n'importe qui connaissant l'URL du webhook aurait pu l'appeler directement en se déclarant `role: admin`, en contournant totalement l'app et son contrôle d'identité.
+
 ### Tests d'attaque effectués (manuels)
 - ✅ User A tente `PATCH /api/feedbacks/<id-de-B>` → 403
 - ✅ User non connecté → 401 sur tous les endpoints sensibles (y compris `GET /api/feedbacks/[id]`)
@@ -209,6 +236,7 @@ Les vérifications de propriété sont **dans les API routes**, pas dans l'UI :
 - ✅ Token JWT bidouillé (signature invalide) → 401
 - ✅ Token Airtable absent du JS bundle vérifié dans Network tab
 - ✅ Login avec email inexistant : latence égale à un email valide (timing attack mitigé via `dummyVerify`)
+- ✅ Appel direct du webhook `/api/compagnon` sans en-tête d'authentification → 401 côté n8n
 
 ### Hardening additionnel
 - **Length caps Zod** : `email.max(254)` (RFC 5321), `password.max(128)` → empêche un payload géant qui ferait boucler bcrypt côté serverless
@@ -306,6 +334,7 @@ Variables optionnelles :
 - `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` — active le rate limiting per-IP. Sans ces vars, le limiteur est no-op (pratique en dev/CI).
 - `SENTRY_DSN` + `NEXT_PUBLIC_SENTRY_DSN` (même valeur) — active le monitoring d'erreurs Sentry. Sans ces vars, le SDK reste no-op.
 - `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` — pour l'upload de source maps au build (facultatif).
+- `COMPAGNON_WEBHOOK_URL` + `COMPAGNON_WEBHOOK_USER` + `COMPAGNON_WEBHOOK_PASS` — active le widget "Compagnon de test" (`/api/compagnon`), qui appelle le webhook n8n de l'agent en Basic Auth. Sans ces vars, l'API renvoie 503 et le widget ne s'affiche simplement pas (dégradation gracieuse, comme les autres intégrations optionnelles ci-dessus). Détail : [Automatisations n8n](#automatisations-n8n).
 
 ⚠️ **Ne jamais préfixer `AIRTABLE_TOKEN`, `AIRTABLE_BASE_ID`, `JWT_SECRET` avec `NEXT_PUBLIC_`** — ce serait exposer le token côté client.
 
@@ -439,6 +468,39 @@ Le workflow `e2e` dans GitHub Actions exécute les 10 tests Playwright sur chaqu
 ⚠️ **Pourquoi les champs texte `FeedbackId` / `UserId` en double des liens ?**
 Airtable's `filterByFormula` ne sait pas filtrer un linked record par son ID — `ARRAYJOIN({Feedback})` retourne le **primary field** des records liés (le titre du feedback), pas leur ID. Pour vérifier vite l'existence d'un vote `(feedback, user)`, on a dénormalisé les IDs en texte plat. Petit coût en stockage, gros gain en simplicité de requête.
 
+### Table `Notifications`
+| Champ | Type | Notes |
+|---|---|---|
+| `Reference` | Single line text | **Primary** (laissé vide) |
+| `Recipient` | Link → Users | destinataire de la notification |
+| `Feedback` | Link → Feedbacks | feedback concerné |
+| `Status` | Single line text | type d'évènement (ex. changement de statut) |
+| `RecipientId` / `FeedbackId` | Single line text | mêmes raisons de dénormalisation que sur `Votes` |
+| `CreatedAt` / `UpdatedAt` | dateTime | |
+
+### Table `Comments`
+| Champ | Type | Notes |
+|---|---|---|
+| `Reference` | Single line text | **Primary** (laissé vide) |
+| `Feedback` | Link → Feedbacks | feedback commenté |
+| `Author` | Link → Users | auteur du commentaire |
+| `Body` | Long text | contenu du commentaire |
+| `FeedbackId` / `AuthorId` | Single line text | mêmes raisons de dénormalisation que sur `Votes` |
+| `CreatedAt` | dateTime | |
+
+### Table `CahierTests`
+| Champ | Type | Notes |
+|---|---|---|
+| `Code` | Single line text | **Primary** (ex. `TEST-006`), utilisé pour citer la source dans les réponses de l'agent |
+| `Campagne` | Single line text | filtré sur la campagne active (`Pulse V1` en dur pour ce MVP — voir [Roadmap](#roadmap-v2--v3)) |
+| `Zone` | Single line text | regroupement d'affichage sur `/campagne` |
+| `Scenario` | Long text | ce que le testeur doit essayer |
+| `ResultatAttendu` | Long text | comportement attendu, indexé dans Qdrant pour le RAG |
+| `Priorite` | Single select | `haute` / `moyenne` / `basse`, nullable |
+| `Actif` | Checkbox | exclut un item du cahier sans le supprimer |
+
+> Les tables techniques `Monitoring`, `JeuDeTest` et `Evaluation` (écrites/lues par n8n, pas par l'app Next.js) sont documentées dans [Automatisations n8n](#automatisations-n8n).
+
 ---
 
 ## Automatisations Airtable
@@ -549,6 +611,51 @@ Même principe que les relations entre tables : on évite la duplication, on cen
 
 ---
 
+## Automatisations n8n
+
+En plus des automatisations natives Airtable ci-dessus, une instance **n8n** (VPS personnel) porte tout ce qui touche à l'IA : classification, agent conversationnel, RAG, qualité. Chaque workflow business est lié à un **Error Workflow** centralisé.
+
+### Pourquoi n8n plutôt que du code Next.js ?
+
+Les automatisations Airtable suffisent pour de la plomberie simple (email déclenché sur un changement de champ). Dès qu'il faut enchaîner plusieurs appels à un modèle de langage, gérer un garde-fou, interroger une base vectorielle et boucler sur un jeu de test, une orchestration visuelle dédiée devient plus lisible et plus rapide à ajuster qu'un enchaînement de fonctions Next.js — sans redéploiement à chaque changement de prompt ou de seuil.
+
+### Digest hebdo IA
+Tous les lundis à 9h, synthèse de la semaine (nouveaux feedbacks, votes, statuts) par Claude Sonnet, envoyée par email.
+
+### Classification automatique
+À la création d'un feedback (Airtable Trigger), Claude Haiku (température 0, sortie JSON stricte) propose `Type` et `Criticality`. Ne touche jamais à la criticité si `CriticalityLockedByAdmin` est coché — un admin garde toujours la main sur ses propres arbitrages.
+
+### Compagnon de test
+Agent conversationnel derrière le widget `/campagne` et `/submit`, orchestré en plusieurs sous-workflows :
+- **Orchestrateur** (Chat Trigger, webhook, protégé par Basic Auth) : normalise l'entrée (identité/rôle **toujours** fournis par `/api/compagnon`, jamais reconstruits depuis le message), puis passe la main au garde-fou.
+- **Garde-fou** (Claude Haiku, JSON strict) : classe chaque message en 4 catégories — `legitime`, `hors_sujet`, `injection`, `hors_perimetre_role` — et bloque tout ce qui n'est pas légitime avant même d'appeler l'agent principal (protège la sécurité et le coût).
+- **Agent** (Claude Sonnet, mémoire glissante 10 messages) : dispose de 2 outils, chacun un sous-workflow RAG sur Qdrant — `guide_de_test` (cherche dans le cahier de test actif) et `recherche_doublons` (cherche un feedback similaire existant, seuil de similarité 0.45, propose de voter pour l'existant plutôt que d'en créer un nouveau).
+- Chaque appel est tracé dans la table `Monitoring`.
+
+### Indexation Qdrant
+Workflow séparé qui vectorise le cahier de test actif (embeddings Cohere `embed-multilingual-v3.0`, 1024 dimensions) et l'upsert dans Qdrant. Appelle Cohere et Qdrant en HTTP direct plutôt que via les nœuds natifs n8n dédiés — voir [ADR](#décisions-techniques-mini-adrs).
+
+### Pipeline d'évaluation qualité
+Rejoue les 8 cas de la table `JeuDeTest` (un par catégorie attendue : nominal, doublon, hors sujet, injection, hors périmètre rôle, information absente, etc.) contre l'agent réel en production, puis fait noter chaque réponse par un juge Claude Haiku sur 3 critères (Pertinence, Sécurité, Clarté), stockés dans `Evaluation`. Baseline actuelle : **4.96/5** sur 8/8 cas. La calibration humaine (comparer le jugement du juge IA au sien sur un échantillon) reste à faire — champ `Annotation_humaine` prévu mais pas encore rempli.
+
+### Error Workflow
+Un seul point d'entrée pour toutes les erreurs des 7 workflows business : alerte email + ligne "Échec" dans `Monitoring`, avec le message d'erreur. Chaque nœud modèle a un retry (2 tentatives, 5 secondes d'écart) et un timeout de 120 secondes.
+
+### Tables techniques (écrites/lues par n8n)
+
+| Table | Rôle |
+|---|---|
+| `Monitoring` | une ligne par exécution majeure (workflow, statut, durée, date, message d'erreur) |
+| `JeuDeTest` | les 8 cas de test de référence, écrits avant la première évaluation |
+| `Evaluation` | résultats détaillés de chaque run du pipeline de qualité |
+
+### Limitations connues (n8n)
+- **Traçabilité seulement partielle en Git** : contrairement au code Next.js, les workflows n8n ne sont pas versionnés automatiquement — toute modification se fait dans l'UI n8n, sans diff ni historique Git.
+- **Pas de couverture E2E/CI** : `/campagne` et `/api/compagnon` ne sont testés qu'à la main, aucun test Playwright ne les couvre aujourd'hui.
+- **Calibration humaine du juge non faite** (voir ci-dessus).
+
+---
+
 ## Structure du code
 
 ```
@@ -619,6 +726,12 @@ Toutes les pages qui consomment des feedbacks sont déjà `dynamic = "force-dyna
 ### ADR-7 : Sécurité des mots de passe — bcrypt cost 10
 Standard 2025. cost 12 serait plus sûr mais ralentit le signup à ~250ms sur les serverless functions Vercel. Trade-off accepté pour cette V1.
 
+### ADR-8 : Pourquoi appeler Cohere et Qdrant en HTTP direct plutôt que les nœuds natifs n8n ?
+Le nœud natif d'insertion Qdrant de n8n a un vrai bug d'écriture (`Not existing vector name error`), confirmé indépendant de Qdrant et de Cohere (les deux testés sains individuellement via des appels directs). Contournement : le workflow d'indexation appelle Cohere (`POST /v2/embed`) et Qdrant (`PUT /collections/.../points`) en HTTP direct. La lecture, elle, reste sur le nœud natif Qdrant, qui fonctionne correctement — à condition que la collection soit créée avec un vecteur nommé chaîne vide plutôt que sans nom.
+
+### ADR-9 : Pourquoi séparer les couleurs du bloc `@theme inline` ?
+`@theme inline` indique à Tailwind v4 de figer la valeur résolue d'une variable au moment de la compilation, plutôt que de générer une référence `var(...)` vivante dans les classes utilitaires. Utile pour les polices (`--font-sans: var(--font-geist-sans)`, une indirection vers une variable injectée par Next.js), mais catastrophique pour les couleurs : ça empêchait `[data-theme="dark"]` de s'appliquer sur `bg-*`/`text-*`, puisque la valeur claire était déjà figée en dur dans le CSS généré. Fix : polices dans leur bloc `@theme inline`, couleurs et radii dans un bloc `@theme` classique juste à côté.
+
 ---
 
 ## Roadmap V2 / V3
@@ -667,13 +780,15 @@ Organisée par effort × impact. Les tiers sont indépendants — vous pouvez pi
 5. **Performance Airtable** — 5 req/s par base. La page liste fait 2 requêtes (feedbacks + users batch). Tient jusqu'à ~50 utilisateurs simultanés grand max.
 6. **Cookie sameSite=lax** — un site malveillant peut déclencher des `GET` cross-origin avec le cookie, mais pas des `POST` (CSRF safe par convention HTTP). Suffisant pour cette V1.
 7. **Pas de versionning des feedbacks** — éditer un feedback écrase l'ancien contenu sans historique.
-8. **Anti-doublon non automatique sur "Soumettre"** — le Compagnon de test (widget de chat, cf. §Automatisations n8n) sait détecter un feedback similaire déjà existant et propose de voter pour lui plutôt que d'en créer un nouveau (outil RAG `recherche_doublons`), mais ce n'est déclenché que si le testeur ouvre le chat et décrit son problème *avant* de remplir le formulaire. Le bouton "Soumettre le feedback" (accessible depuis `/submit`, `/campagne` et "+ Nouveau" sur `/feedbacks` — un seul et même formulaire) ne fait aucune vérification lui-même : deux testeurs qui ne passent pas par le chat peuvent créer deux feedbacks distincts pour le même bug. Choix de scope assumé (MVP) plutôt que bug : automatiser la vérification au clic sur "Soumettre" est identifié comme amélioration V2 (Tier 2), mais ajoute un appel réseau bloquant sur le chemin de soumission et un nouveau cas à couvrir dans le jeu de test — mis en balance avec le fait que le mécanisme RAG est déjà démontré et fonctionnel via le chat.
+8. **Anti-doublon non automatique au clic sur "Soumettre le feedback"** — le Compagnon de test (voir [Automatisations n8n](#automatisations-n8n)) sait détecter un feedback similaire et propose de voter pour lui plutôt que d'en créer un nouveau, mais seulement si le testeur ouvre le chat et décrit son problème *avant* de remplir le formulaire. Le bouton "Soumettre le feedback" (accessible depuis `/submit`, `/campagne` et "+ Nouveau feedback" sur `/feedbacks` — un seul et même formulaire) ne fait aucune vérification lui-même. Choix de scope assumé (MVP) plutôt que bug : l'automatiser ajouterait un appel réseau bloquant sur le chemin de soumission et un nouveau cas à couvrir dans le jeu de test, pour un mécanisme déjà démontré et fonctionnel via le chat.
+9. **Calibration humaine du juge de qualité non faite** — voir [Automatisations n8n](#automatisations-n8n).
+10. **`/campagne` et le Compagnon de test hors couverture E2E/CI** — testés manuellement seulement à ce jour.
 
 ---
 
 ## Crédits
 
-Projet final 2 jours du **programme Web Development** de [La Capsule](https://www.lacapsule.academy/), mai 2026.
+Mon projet final du titre **Product Builder No-Code** ([La Capsule](https://www.lacapsule.academy/)), 2026.
 
 Brief original : centraliser et prioriser le feedback produit, en illustrant les 12 principes du cours "Construire une application solide" (séparation données/UI, sécurité côté serveur, naming, scalabilité…).
 
