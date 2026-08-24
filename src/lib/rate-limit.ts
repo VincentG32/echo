@@ -28,7 +28,7 @@ function getLimiter(name: string, max: number, window: Window): Ratelimit | null
     l = new Ratelimit({
       redis: r,
       limiter: Ratelimit.slidingWindow(max, window),
-      prefix: `pulse:rl:${name}`,
+      prefix: `echo:rl:${name}`,
       analytics: false,
     });
     limiters.set(name, l);

@@ -1,17 +1,17 @@
-# Pulse
+# Echo
 
 > **Outil interne de centralisation et priorisation du feedback produit.**
 > Vos collègues proposent (bugs, idées, améliorations), votent — vous priorisez sur des données, plus à l'instinct.
 
 🌐 **Live** → [pulse-one-brown.vercel.app](https://pulse-one-brown.vercel.app)
-📦 **Repo** → [github.com/VincentG32/pulse](https://github.com/VincentG32/pulse)
+📦 **Repo** → [github.com/VincentG32/echo](https://github.com/VincentG32/echo)
 
 Stack : **Next.js 16** (App Router) · **TypeScript** · **Tailwind v4** · **Airtable** · **n8n** · **Qdrant** · **Claude (Anthropic)** · **Auth JWT custom** · **Vercel**
 
 ---
 
 ## Sommaire
-1. [Pourquoi Pulse](#pourquoi-pulse)
+1. [Pourquoi Echo](#pourquoi-echo)
 2. [Fonctionnalités livrées](#fonctionnalités-livrées)
 3. [Stack & justifications](#stack--justifications)
 4. [Architecture](#architecture)
@@ -29,7 +29,7 @@ Stack : **Next.js 16** (App Router) · **TypeScript** · **Tailwind v4** · **Ai
 
 ---
 
-## Pourquoi Pulse
+## Pourquoi Echo
 
 Dans une équipe produit, le feedback utilisateur arrive de partout : Slack, Notion, mails, tickets de support… Résultat :
 
@@ -37,7 +37,7 @@ Dans une équipe produit, le feedback utilisateur arrive de partout : Slack, Not
 - Idées **dupliquées** parce que personne ne sait ce qui a déjà été soumis
 - Pas de signal clair sur ce qui compte **pour les utilisateurs**, pas pour celui qui le porte
 
-Pulse résout ça avec un périmètre volontairement minimaliste :
+Echo résout ça avec un périmètre volontairement minimaliste :
 
 - **Une source unique** de feedback, structurée (titre, description, type)
 - **Un vote = un user** (un utilisateur ne peut voter qu'une seule fois par feedback)
@@ -120,7 +120,7 @@ Pas de plugin tiers exposé aux utilisateurs, pas d'intégration Slack. L'IA res
 
 ### V7 — Cahier de test, Compagnon de test & IA ✅
 
-- **Cahier de test** — table `CahierTests` (voir [Schéma Airtable](#schéma-airtable)) + page `/campagne` : liste les scénarios de test de la campagne active (`Pulse V1`), groupés par zone, avec un badge de priorité. Chaque item a un lien "Donner un feedback sur ce test" qui pré-remplit `/submit` (titre + description) avec le code du test, le scénario et le résultat attendu.
+- **Cahier de test** — table `CahierTests` (voir [Schéma Airtable](#schéma-airtable)) + page `/campagne` : liste les scénarios de test de la campagne active (`Echo V1`), groupés par zone, avec un badge de priorité. Chaque item a un lien "Donner un feedback sur ce test" qui pré-remplit `/submit` (titre + description) avec le code du test, le scénario et le résultat attendu.
 - **Compagnon de test** — widget de chat ([`CompagnonWidget`](src/components/CompagnonWidget.tsx)), visible sur `/campagne` et `/submit` une fois connecté. Guide vers le bon scénario du cahier de test actif et détecte les doublons potentiels avant soumission (propose de voter pour un feedback existant plutôt que d'en créer un nouveau). Détail complet, modèles et garde-fous : voir [Automatisations n8n](#automatisations-n8n).
 - **Pipeline de qualité** — jeu de test de 8 cas (table `JeuDeTest`, un par catégorie attendue) rejoué contre l'agent réel, noté par un juge IA sur 3 critères (table `Evaluation`). Baseline : **4.96/5** (Pertinence 4.88, Sécurité 5.00, Clarté 5.00) sur 8/8 cas sans erreur.
 - **Correctif dashboard** — les graphiques de `/admin` (répartition par type, backlog par statut) ne s'affichaient plus correctement : l'animation d'entrée des barres (Recharts) ne se résolvait jamais dans certains cas. Corrigé en désactivant l'animation d'entrée sur les deux graphiques.
@@ -204,7 +204,7 @@ Quatre couches qui se renforcent. Compromettre une seule ne suffit pas.
 - Vérification : `curl https://pulse-one-brown.vercel.app/_next/static/...` ne contient jamais `pat...`
 
 ### 2. Authentification par cookie JWT signé
-- Cookie `pulse_token` :
+- Cookie `echo_token` :
   - `httpOnly` (impossible à lire en JS, donc immune aux XSS)
   - `secure` en prod (HTTPS uniquement)
   - `sameSite=lax` (CSRF protection raisonnable, signup depuis un lien externe fonctionne)
@@ -271,7 +271,7 @@ Cible **WCAG 2.1 AA**. Audit interne passé, correctifs appliqués sur les écar
 | **A-2** | `aria-busy={pending}` sur boutons submit pendant les requêtes API | État "occupé" exposé aux lecteurs d'écran |
 | **A-3** | Bannières `Notification` et `Verification` en `<aside aria-label>` | Landmarks navigables |
 | **A-4** | `inputMode="email"` explicite sur les champs email | Clavier mobile correct, défense en profondeur sur `type=email` |
-| **A-5** | `AppToaster` synchronise sonner avec `data-theme` Pulse (au lieu de `prefers-color-scheme`) | Toasts cohérents avec le thème manuel choisi |
+| **A-5** | `AppToaster` synchronise sonner avec `data-theme` Echo (au lieu de `prefers-color-scheme`) | Toasts cohérents avec le thème manuel choisi |
 
 ### Items audit identifiés mais non encore corrigés (V3)
 
@@ -302,18 +302,18 @@ Pages logguées-in (`/feedbacks`, `/admin`, `/dev`) restent couvertes par l'audi
 ### 1. Installer
 
 ```bash
-git clone https://github.com/VincentG32/pulse.git
-cd pulse
+git clone https://github.com/VincentG32/echo.git
+cd echo
 npm install
 ```
 
 ### 2. Créer la base Airtable
-1. [airtable.com](https://airtable.com) → **Create a base** → la nommer `Pulse Base`
+1. [airtable.com](https://airtable.com) → **Create a base** → la nommer `Echo Base`
 2. Récupérer le `Base ID` dans l'URL (`airtable.com/appXXXXXXXXXXXXXX/...`)
 3. [airtable.com/create/tokens](https://airtable.com/create/tokens) → créer un PAT
-   - Name : `Pulse local`
+   - Name : `Echo local`
    - Scopes : `data.records:read`, `data.records:write`, `schema.bases:read`
-   - Access : restreindre à la base `Pulse Base` (best practice sécu)
+   - Access : restreindre à la base `Echo Base` (best practice sécu)
 
 ### 3. Créer les tables
 Voir [Schéma Airtable](#schéma-airtable) ci-dessous.
@@ -372,11 +372,11 @@ Seed data utilisée pour les démos et les tests E2E. Tous marqués `EmailVerifi
 
 ### 7. Déploiement Vercel
 1. `git push` sur GitHub
-2. [vercel.com/new](https://vercel.com/new) → Import → choisir le repo `pulse`
+2. [vercel.com/new](https://vercel.com/new) → Import → choisir le repo `echo`
 3. Environment Variables : ajouter les 3 mêmes (Production + Preview)
 4. Deploy → URL en `xxx.vercel.app`
 
-**Recommandé** : créer 2 bases Airtable séparées (`Pulse-Dev` et `Pulse-Prod`) pour ne pas polluer la prod avec de la data de test. Chaque environnement Vercel pointe sur sa base.
+**Recommandé** : créer 2 bases Airtable séparées (`Echo-Dev` et `Echo-Prod`) pour ne pas polluer la prod avec de la data de test. Chaque environnement Vercel pointe sur sa base.
 
 ### 8. Tests E2E en CI (optionnel)
 
@@ -385,7 +385,7 @@ Le workflow `e2e` dans GitHub Actions exécute les 10 tests Playwright sur chaqu
 **Pour l'activer** :
 
 1. **Créer une base Airtable de test isolée** :
-   - airtable.com → Create base → la nommer `Pulse-Test`
+   - airtable.com → Create base → la nommer `Echo-Test`
    - Cloner manuellement le schéma de prod (5 tables : Users, Feedbacks, Votes, Notifications, Comments). Ou via [airtable.com/sync-data](https://airtable.com/sync-data).
    - Créer les 4 comptes de test : `alice@test.com` (admin), `bob@test.com` (user), `sarah@pulse.app` (user), `lea@pulse.app` (dev) — tous avec password `password123` (les tests les utilisent).
    - Récupérer le `Base ID` (commence par `app...`)
@@ -492,7 +492,7 @@ Airtable's `filterByFormula` ne sait pas filtrer un linked record par son ID —
 | Champ | Type | Notes |
 |---|---|---|
 | `Code` | Single line text | **Primary** (ex. `TEST-006`), utilisé pour citer la source dans les réponses de l'agent |
-| `Campagne` | Single line text | filtré sur la campagne active (`Pulse V1` en dur pour ce MVP — voir [Roadmap](#roadmap-v2--v3)) |
+| `Campagne` | Single line text | filtré sur la campagne active (`Echo V1` en dur pour ce MVP — voir [Roadmap](#roadmap-v2--v3)) |
 | `Zone` | Single line text | regroupement d'affichage sur `/campagne` |
 | `Scenario` | Long text | ce que le testeur doit essayer |
 | `ResultatAttendu` | Long text | comportement attendu, indexé dans Qdrant pour le RAG |
@@ -505,7 +505,7 @@ Airtable's `filterByFormula` ne sait pas filtrer un linked record par son ID —
 
 ## Automatisations Airtable
 
-Pulse utilise les **Automatisations natives d'Airtable** pour piloter les alertes admin, en complément du backend Next.js. Cette couche tourne **côté Airtable**, sans toucher au code applicatif. Elle est désactivable d'un toggle si la base est synchronisée vers une autre prod.
+Echo utilise les **Automatisations natives d'Airtable** pour piloter les alertes admin, en complément du backend Next.js. Cette couche tourne **côté Airtable**, sans toucher au code applicatif. Elle est désactivable d'un toggle si la base est synchronisée vers une autre prod.
 
 ### Pourquoi pas tout faire dans le code Next.js ?
 
@@ -567,7 +567,7 @@ Même principe que les relations entre tables : on évite la duplication, on cen
 
 | Limite | Valeur | Notes |
 |---|---|---|
-| Emails / jour | 100 par destinataire vérifié (plan Free) | Largement suffisant au volume Pulse |
+| Emails / jour | 100 par destinataire vérifié (plan Free) | Largement suffisant au volume Echo |
 | Runs d'automatisation / mois | 100 sur Free, 1 000 sur Team | À surveiller si on multiplie les automatisations |
 | Délai de déclenchement | ~30 s à 2 min | Pas du temps réel — acceptable pour des alertes admin |
 
@@ -718,7 +718,7 @@ Voir [Schéma Airtable](#table-votes). Détaillé ci-dessus : `filterByFormula` 
 Next.js 16 a déprécié le nom `middleware.ts` au profit de `proxy.ts` (renommage uniquement). La fonction exportée s'appelle désormais `proxy()` et non `middleware()`. Aucun changement de signature.
 
 ### ADR-5 : Pourquoi `force-dynamic` partout au lieu d'`ISR` ?
-Pulse est un outil interne de petite équipe — la fraîcheur instantanée des votes prime sur la perf. `force-dynamic` simplifie aussi le mental model (pas de cache à invalider). À reconsidérer V3 quand on aura SWR côté client + cache HTTP côté Edge.
+Echo est un outil interne de petite équipe — la fraîcheur instantanée des votes prime sur la perf. `force-dynamic` simplifie aussi le mental model (pas de cache à invalider). À reconsidérer V3 quand on aura SWR côté client + cache HTTP côté Edge.
 
 ### ADR-6 : Pourquoi pas de `revalidatePath` après mutation ?
 Toutes les pages qui consomment des feedbacks sont déjà `dynamic = "force-dynamic"`. Un `router.refresh()` côté client suffit pour faire re-render le Server Component avec la data fraîche.

@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Pulse — Feedback produit",
+  title: "Echo — Feedback produit",
   description: "Centralisez et priorisez le feedback produit",
 };
 
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 // theme is applied before paint (no flash of light theme).
 const themeInitScript = `
 try {
-  var t = localStorage.getItem('pulse-theme');
+  var t = localStorage.getItem('echo-theme');
   if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
     document.documentElement.dataset.theme = 'dark';
   }

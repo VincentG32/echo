@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 
-// Pulse uses Resend for transactional email (verification + password
+// Echo uses Resend for transactional email (verification + password
 // reset). Without RESEND_API_KEY the function no-ops and logs the URL to
 // the server console — useful in dev/CI where you want the verification
 // flow to remain testable without external infra.
@@ -17,7 +17,7 @@ function getClient(): Resend | null {
 function getFrom(): string {
   // Default to Resend's onboarding sender so the demo works without
   // domain verification. For real sends, configure RESEND_FROM_EMAIL.
-  return process.env.RESEND_FROM_EMAIL ?? "Pulse <onboarding@resend.dev>";
+  return process.env.RESEND_FROM_EMAIL ?? "Echo <onboarding@resend.dev>";
 }
 
 export function getAppUrl(): string {
@@ -63,7 +63,7 @@ export async function sendEmail(input: SendInput): Promise<void> {
 export function verificationEmailHtml(verifyUrl: string): string {
   return `
     <div style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
-      <h1 style="font-size: 18px; margin: 0 0 16px;">Bienvenue sur Pulse</h1>
+      <h1 style="font-size: 18px; margin: 0 0 16px;">Bienvenue sur Echo</h1>
       <p style="color: #444; line-height: 1.5;">
         Pour activer votre compte, cliquez sur le lien ci-dessous. Il expire dans 24 heures.
       </p>

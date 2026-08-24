@@ -4,12 +4,12 @@ import { useSyncExternalStore } from "react";
 import { Toaster } from "sonner";
 
 // A-5 audit: sonner's default theme="system" follows the OS
-// prefers-color-scheme, which can desync from Pulse's manual theme
+// prefers-color-scheme, which can desync from Echo's manual theme
 // toggle. This wrapper reads document.documentElement.dataset.theme
 // (same source-of-truth as ThemeToggle) so toasts always match the
 // page contrast.
 
-const CHANGE_EVENT = "pulse-theme-change";
+const CHANGE_EVENT = "echo-theme-change";
 
 function getTheme(): "light" | "dark" {
   if (typeof document === "undefined") return "light";

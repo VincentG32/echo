@@ -4,7 +4,7 @@ import type { NextConfig } from "next";
 
 // I-3: security headers
 const securityHeaders = [
-  // Block click-jacking — Pulse should never be framed
+  // Block click-jacking — Echo should never be framed
   { key: "X-Frame-Options", value: "DENY" },
   // Force HTTPS for 2 years (Vercel already does, but explicit is safer)
   {

@@ -1,8 +1,8 @@
 {
-  "name": "pulse-docs",
+  "name": "echo-docs",
   "version": "1.0.0",
   "private": true,
-  "description": "Generators for the Pulse final-presentation deck.",
+  "description": "Generators for the Echo final-presentation deck.",
   "type": "module",
   "scripts": {
     "build": "node build-presentation.mjs"

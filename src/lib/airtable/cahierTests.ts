@@ -27,7 +27,7 @@ function mapCahierTest(r: AirtableRecord): CahierTestItem {
 // Campagne active codée en dur pour ce POC (une seule campagne à la fois).
 // Passer en paramètre de config si plusieurs campagnes doivent un jour
 // coexister (cf. roadmap V2 multi-projets).
-export const ACTIVE_CAMPAIGN = "Pulse V1";
+export const ACTIVE_CAMPAIGN = "Echo V1";
 
 export async function listActiveCahierTests(): Promise<CahierTestItem[]> {
   const escaped = escapeFormulaValue(ACTIVE_CAMPAIGN);

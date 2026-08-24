@@ -47,7 +47,7 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         chatInput: message,
-        sessionId: `pulse-${user.id}-${sessionId}`,
+        sessionId: `echo-${user.id}-${sessionId}`,
         role: user.role,
         identity: user.email,
       }),

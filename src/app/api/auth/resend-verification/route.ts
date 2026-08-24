@@ -48,7 +48,7 @@ export async function POST(request: Request) {
   const verifyUrl = `${getAppUrl()}/api/auth/verify/${verificationToken}`;
   await sendEmail({
     to: user.email,
-    subject: "Activez votre compte Pulse",
+    subject: "Activez votre compte Echo",
     html: verificationEmailHtml(verifyUrl),
     devLogContext: `verifyUrl=${verifyUrl}`,
   });

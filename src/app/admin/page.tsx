@@ -45,7 +45,7 @@ export default async function AdminPage({ searchParams }: PageProps) {
         </div>
         <p className="text-xs text-text-tertiary mb-5">
           {active === "overview"
-            ? "Vue d'ensemble de l'activité Pulse"
+            ? "Vue d'ensemble de l'activité Echo"
             : "Modérer les feedbacks et envoyer au backlog"}
         </p>
 

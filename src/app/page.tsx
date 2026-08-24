@@ -16,7 +16,7 @@ export default async function HomePage() {
           Outil interne · feedback produit
         </p>
         <h1 className="text-4xl sm:text-5xl font-semibold text-text-primary mb-4 tracking-tight">
-          Pulse
+          Echo
         </h1>
         <p className="text-lg sm:text-xl text-text-secondary max-w-2xl mx-auto leading-relaxed mb-8">
           Centralisez et priorisez le feedback de votre équipe.

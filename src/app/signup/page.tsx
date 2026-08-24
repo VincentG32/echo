@@ -35,7 +35,7 @@ export default function SignupPage() {
       );
       return;
     }
-    toast.success("Bienvenue sur Pulse !");
+    toast.success("Bienvenue sur Echo !");
     window.location.href = "/feedbacks";
   }
 

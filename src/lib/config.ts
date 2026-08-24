@@ -4,7 +4,7 @@
 
 // --- Auth ---
 
-export const COOKIE_NAME = "pulse_token";
+export const COOKIE_NAME = "echo_token";
 
 // 7 days. Long enough to avoid daily re-login, short enough to limit
 // damage if a cookie is stolen (V3: shorten + add refresh tokens).

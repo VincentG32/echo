@@ -34,8 +34,8 @@ export async function POST(request: Request) {
   if (existing) {
     await sendEmail({
       to: existing.email,
-      subject: "Tentative de création de compte Pulse",
-      html: `<p>Quelqu'un a tenté de créer un compte Pulse avec cette adresse, qui possède déjà un compte. Si ce n'était pas vous, ignorez cet email. Sinon, connectez-vous normalement ou utilisez « mot de passe oublié ».</p>`,
+      subject: "Tentative de création de compte Echo",
+      html: `<p>Quelqu'un a tenté de créer un compte Echo avec cette adresse, qui possède déjà un compte. Si ce n'était pas vous, ignorez cet email. Sinon, connectez-vous normalement ou utilisez « mot de passe oublié ».</p>`,
       devLogContext: `signup collision for ${existing.email}`,
     });
     return NextResponse.json({
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
   const verifyUrl = `${getAppUrl()}/api/auth/verify/${verificationToken}`;
   await sendEmail({
     to: user.email,
-    subject: "Activez votre compte Pulse",
+    subject: "Activez votre compte Echo",
     html: verificationEmailHtml(verifyUrl),
     devLogContext: `verifyUrl=${verifyUrl}`,
   });

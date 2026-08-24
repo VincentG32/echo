@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     const resetUrl = `${getAppUrl()}/reset-password/${resetToken}`;
     await sendEmail({
       to: user.email,
-      subject: "Réinitialisation de votre mot de passe Pulse",
+      subject: "Réinitialisation de votre mot de passe Echo",
       html: resetPasswordEmailHtml(resetUrl),
       devLogContext: `resetUrl=${resetUrl}`,
     });

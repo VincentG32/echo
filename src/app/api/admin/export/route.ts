@@ -3,7 +3,7 @@ import { listFeedbacks } from "@/lib/airtable";
 import { requireAuth } from "@/lib/api-helpers";
 
 // V6: admin-only CSV export of every feedback. Used for monthly reporting
-// outside Pulse (Sheets, Excel...). Streams a UTF-8 BOM + comma-separated
+// outside Echo (Sheets, Excel...). Streams a UTF-8 BOM + comma-separated
 // rows. RFC 4180-ish escaping (double quotes around cells containing
 // commas/quotes/newlines, internal quotes doubled).
 
@@ -67,7 +67,7 @@ export async function GET() {
     status: 200,
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="pulse-feedbacks-${today}.csv"`,
+      "Content-Disposition": `attachment; filename="echo-feedbacks-${today}.csv"`,
       "Cache-Control": "no-store",
     },
   });

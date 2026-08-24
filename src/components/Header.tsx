@@ -13,7 +13,7 @@ export async function Header() {
           href={user ? "/feedbacks" : "/"}
           className="text-base font-semibold text-text-primary shrink-0"
         >
-          Pulse
+          Echo
         </Link>
 
         <nav className="flex items-center gap-2 sm:gap-4 text-sm">

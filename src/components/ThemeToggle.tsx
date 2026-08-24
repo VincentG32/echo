@@ -3,8 +3,8 @@
 import { useSyncExternalStore } from "react";
 
 type Theme = "light" | "dark";
-const STORAGE_KEY = "pulse-theme";
-const CHANGE_EVENT = "pulse-theme-change";
+const STORAGE_KEY = "echo-theme";
+const CHANGE_EVENT = "echo-theme-change";
 
 function getCurrentTheme(): Theme {
   // SSR returns light; the inline script in <head> applies the right
