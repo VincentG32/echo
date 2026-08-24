@@ -3,7 +3,7 @@
 > **Outil interne de centralisation et priorisation du feedback produit.**
 > Vos collègues proposent (bugs, idées, améliorations), votent — vous priorisez sur des données, plus à l'instinct.
 
-🌐 **Live** → [pulse-one-brown.vercel.app](https://pulse-one-brown.vercel.app)
+🌐 **Live** → [echo-granouillit.vercel.app](https://echo-granouillit.vercel.app)
 📦 **Repo** → [github.com/VincentG32/echo](https://github.com/VincentG32/echo)
 
 Stack : **Next.js 16** (App Router) · **TypeScript** · **Tailwind v4** · **Airtable** · **n8n** · **Qdrant** · **Claude (Anthropic)** · **Auth JWT custom** · **Vercel**
@@ -201,7 +201,7 @@ Quatre couches qui se renforcent. Compromettre une seule ne suffit pas.
 ### 1. Le token Airtable n'atteint jamais le navigateur
 - Variable d'env `AIRTABLE_TOKEN` lue **côté serveur uniquement** (`process.env`)
 - Aucun préfixe `NEXT_PUBLIC_` (qui exposerait au bundle client)
-- Vérification : `curl https://pulse-one-brown.vercel.app/_next/static/...` ne contient jamais `pat...`
+- Vérification : `curl https://echo-granouillit.vercel.app/_next/static/...` ne contient jamais `pat...`
 
 ### 2. Authentification par cookie JWT signé
 - Cookie `echo_token` :
